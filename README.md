@@ -4,7 +4,10 @@
 
 ## 🎉 Introduction
 
+The name "TyDy" is a blend of "Ty" and "Dy," where "Ty" represents TypeScript, and "Dy" suggests "dynamic." It reflects the core focus of the library, which is to provide dynamic and type-safe utilities for TypeScript.
+
 TyDy provides a cohesive set of utilities designed for developers working with dynamic data structures in TypeScript. It ensures runtime type safety, offers reflection capabilities, provides validation tools, and more.
+
 
 ## Features
 
@@ -18,7 +21,9 @@ TyDy provides a cohesive set of utilities designed for developers working with d
 
 To install TyDy, use the following command:
 
+```bash
 npm install tydy --save
+```
 
 ## 🚀 Usage
 
