@@ -1,6 +1,6 @@
 # 🌌 TyDy
 
-🛠 Dynamic, type-safe utilities for TypeScript.
+🛠 Dynamic, type-safe utilities for TypeScript, in under 150 Lines of Code.
 
 ## 🎉 Introduction
 
