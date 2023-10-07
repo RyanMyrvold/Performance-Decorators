@@ -149,6 +149,7 @@ Use it to wrap and interact with a third-party library in a type-safe manner.
 const someLibrary = {
   getValue: () => 'Hello from the third-party library',
 };
+const wrappedLibrary = ThirdPartyTypeWrapper.wrapWithProxy(someLibrary);
 const result = wrappedLibrary.getValue();
 ```
 
