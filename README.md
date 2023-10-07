@@ -17,6 +17,36 @@ TyDy provides a cohesive set of utilities designed for developers working with d
 - 🏗️ Code Generation: Generate code based on templates with type constraints.
 - 🌐 Third-party Library Wrapping: Interact with third-party libraries in a type-safe manner.
 
+
+## 🌟 Visualizing TyDy
+
+```mermaid
+graph TD
+  subgraph TyDy
+    subgraph DynamicTypeSafe
+      CreateDynamicType
+    end
+    subgraph DynamicTypeReflection
+      RegisterType
+    end
+    subgraph DynamicTypeValidator
+      ValidateType
+    end
+    subgraph CodeGenerator
+      GenerateCode
+    end
+    subgraph ThirdPartyTypeWrapper
+      WrapWithProxy
+    end
+  end
+
+  DynamicTypeSafe --> |creates| DynamicTypes
+  DynamicTypes --> |registers with| DynamicTypeReflection
+  DynamicTypeSafe --> |validates| DynamicTypeValidator
+  DynamicTypeSafe --> |generates| CodeGenerator
+  DynamicTypeSafe --> |wraps with| ThirdPartyTypeWrapper
+```
+
 ## 📦 Installation
 
 To install TyDy, use the following command:
@@ -120,35 +150,6 @@ const someLibrary = {
   getValue: () => 'Hello from the third-party library',
 };
 const result = wrappedLibrary.getValue();
-```
-
-## 🌟 Visualizing TyDy
-
-```mermaid
-graph TD
-  subgraph TyDy
-    subgraph DynamicTypeSafe
-      CreateDynamicType
-    end
-    subgraph DynamicTypeReflection
-      RegisterType
-    end
-    subgraph DynamicTypeValidator
-      ValidateType
-    end
-    subgraph CodeGenerator
-      GenerateCode
-    end
-    subgraph ThirdPartyTypeWrapper
-      WrapWithProxy
-    end
-  end
-
-  DynamicTypeSafe --> |creates| DynamicTypes
-  DynamicTypes --> |registers with| DynamicTypeReflection
-  DynamicTypeSafe --> |validates| DynamicTypeValidator
-  DynamicTypeSafe --> |generates| CodeGenerator
-  DynamicTypeSafe --> |wraps with| ThirdPartyTypeWrapper
 ```
 
 ## Contribution
