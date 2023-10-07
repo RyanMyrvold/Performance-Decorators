@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",                          // Target the latest ECMAScript version features
+      "module": "ESNext",                          // Use the latest module system
+      "moduleResolution": "node",                  // Module resolution strategy to be Node-compatible
+      "lib": ["ESNext", "DOM"],                    // Include latest ECMAScript library and DOM
+      "outDir": "./dist",                          // Output directory for transpiled files
+      "rootDir": "./src",                          // Root directory of source files
+      "declaration": true,                         // Generate .d.ts declaration files
+      "strict": true,                              // Enable strict type-checking
+      "esModuleInterop": true,                     // Treat CommonJS modules as ES6 modules for imports
+      "skipLibCheck": true,                        // Skip type checking of declaration files
+      "forceConsistentCasingInFileNames": true,    // Avoid potential issues on case-insensitive file systems
+      "isolatedModules": true                      // Ensure each file can be safely transpiled without relying on other imports
+    },
+    "include": [
+      "src/**/*.ts"                                // Include all TypeScript files in src directory
+    ],
+    "exclude": [
+      "node_modules",
+      "**/*.test.ts"                               // Exclude test files
+    ]
+  }

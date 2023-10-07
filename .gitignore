@@ -1,0 +1,31 @@
+# Node related
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE and Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# dotenv environment variable files
+.env
+
+# Test logs
+coverage/
