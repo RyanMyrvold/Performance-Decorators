@@ -8,6 +8,10 @@
     "build": "tsc",
     "test": "jest"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mervsy/TyDy"
+  },
   "keywords": [
     "typescript",
     "dynamic",
@@ -20,9 +24,9 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "*",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1",
+    "jest": "*",
+    "ts-jest": "*",
+    "ts-node": "*",
     "typescript": "*"
   }
 }
