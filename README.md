@@ -144,12 +144,12 @@ graph TD
     end
   end
 
-  DynamicTypeSafe --> |creates| Dynamic Types
-  Dynamic Types --> |registers with| DynamicTypeReflection
+  DynamicTypeSafe --> |creates| DynamicTypes
+  DynamicTypes --> |registers with| DynamicTypeReflection
   DynamicTypeSafe --> |validates| DynamicTypeValidator
   DynamicTypeSafe --> |generates| CodeGenerator
   DynamicTypeSafe --> |wraps with| ThirdPartyTypeWrapper
-
+```
 
 ## Contribution
 
