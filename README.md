@@ -119,6 +119,32 @@ const instance = { name: 'Alice', age: 30 };
 console.log(DynamicTypeValidator.validateType(instance, type)); // true
 ```
 
+## 🔍 Reflection Capabilities
+
+Import the dynamic type reflection system:
+
+```typescript
+import { DynamicTypeReflection } from 'tydy';
+```
+
+Use reflection capabilities in TyDy to inspect and manage dynamic types
+
+```typescript
+// Define a dynamic type representing a person
+const personType = { name: 'string', age: 'number' };
+
+// Register the dynamic type with TyDy's reflection system
+DynamicTypeReflection.registerType(personType);
+
+// Check if the type has a valid definition
+const isValid = DynamicTypeReflection.hasValidDefinition(personType);
+console.log(`Is personType valid? ${isValid}`); // Should output: "Is personType valid? true"
+
+// Get the properties of the dynamic type
+const properties = DynamicTypeReflection.getProperties(personType);
+console.log(`Properties of personType: ${properties}`); // Should output: "Properties of personType: name,age"
+```
+
 ## 🏗️ Code Generation
 
 Import the code generator:
