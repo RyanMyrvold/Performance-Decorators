@@ -126,29 +126,29 @@ const result = wrappedLibrary.getValue();
 
 ```mermaid
 graph TD
-    subgraph TyDy
-        subgraph DynamicTypeSafe
-            CreateDynamicType
-        end
-        subgraph DynamicTypeReflection
-            RegisterType
-        end
-        subgraph DynamicTypeValidator
-            ValidateType
-        end
-        subgraph CodeGenerator
-            GenerateCode
-        end
-        subgraph ThirdPartyTypeWrapper
-            WrapWithProxy
-        end
+  subgraph TyDy
+    subgraph DynamicTypeSafe
+      CreateDynamicType
     end
+    subgraph DynamicTypeReflection
+      RegisterType
+    end
+    subgraph DynamicTypeValidator
+      ValidateType
+    end
+    subgraph CodeGenerator
+      GenerateCode
+    end
+    subgraph ThirdPartyTypeWrapper
+      WrapWithProxy
+    end
+  end
 
-    DynamicTypeSafe -->|creates| Dynamic Types
-    Dynamic Types -->|registers with| DynamicTypeReflection
-    DynamicTypeSafe -->|validates| DynamicTypeValidator
-    DynamicTypeSafe -->|generates| CodeGenerator
-    DynamicTypeSafe -->|wraps with| ThirdPartyTypeWrapper
+  DynamicTypeSafe --> |creates| Dynamic Types
+  Dynamic Types --> |registers with| DynamicTypeReflection
+  DynamicTypeSafe --> |validates| DynamicTypeValidator
+  DynamicTypeSafe --> |generates| CodeGenerator
+  DynamicTypeSafe --> |wraps with| ThirdPartyTypeWrapper
 
 
 ## Contribution
