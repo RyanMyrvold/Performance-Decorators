@@ -8,7 +8,6 @@ The name "TyDy" is a blend of "Ty" and "Dy," where "Ty" represents TypeScript, a
 
 TyDy provides a cohesive set of utilities designed for developers working with dynamic data structures in TypeScript. It ensures runtime type safety, offers reflection capabilities, provides validation tools, and more.
 
-
 ## Features
 
 - 💼 Dynamic Type Creation: Generate and work with types on-the-fly.
@@ -16,7 +15,6 @@ TyDy provides a cohesive set of utilities designed for developers working with d
 - 🔍 Reflection Capabilities: Inspect and manage your dynamic types.
 - 🏗️ Code Generation: Generate code based on templates with type constraints.
 - 🌐 Third-party Library Wrapping: Interact with third-party libraries in a type-safe manner.
-
 
 ## 🌟 Visualizing TyDy
 
@@ -57,25 +55,23 @@ npm install tydy --save
 
 ## 🚀 Usage
 
-## 📚 Type Registration
+### 📚 Type Registration
 
 In your TypeScript projects, you may come across scenarios where type registration becomes essential for maintaining code quality and ensuring type safety. TyDy provides a utility called `DynamicTypeReflection` for this purpose.
 
-### What is Type Registration?
+#### What is Type Registration?
 
 Type registration involves informing the TypeScript runtime system about the existence and structure of dynamic types. It serves as a way to validate, inspect, and work with these types during runtime. While TypeScript performs static type checking at compile-time, type registration can help with runtime type operations.
 
-### When is Type Registration Needed?
+#### When is Type Registration Needed?
 
 Type registration can be beneficial in various scenarios, including:
 
 1. **Dynamic Data Structures:** When you work with dynamic data structures where the shape of an object can change based on user input or external data sources. Registering these dynamic types allows you to validate and manipulate them at runtime.
-
 2. **Third-Party Libraries:** When you interact with third-party JavaScript libraries that may not have TypeScript type definitions. Registering the types used with these libraries helps ensure type safety when using their APIs.
-
 3. **Runtime Configurations:** In cases where your application's configuration is dynamic and can change without a fixed schema, type registration can help validate and reflect on configuration objects.
 
-### How to Register Types
+#### How to Register Types
 
 To register a type, you can use TyDy's `DynamicTypeReflection` utility by calling `DynamicTypeReflection.registerType(type)`.
 
@@ -88,7 +84,7 @@ const myDynamicType = { name: 'string', age: 'number' };
 DynamicTypeReflection.registerType(myDynamicType);
 ```
 
-## 💼 Dynamic Type Creation
+### 💼 Dynamic Type Creation
 
 Import the necessary utilities:
 
@@ -103,7 +99,7 @@ const dynamicType = DynamicTypeSafe.createDynamicType({ name: 'string', age: 'nu
 const instance = new dynamicType();
 ```
 
-## ✅ Type Validation
+### ✅ Type Validation
 
 Import the type validator:
 
@@ -119,7 +115,7 @@ const instance = { name: 'Alice', age: 30 };
 console.log(DynamicTypeValidator.validateType(instance, type)); // true
 ```
 
-## 🔍 Reflection Capabilities
+### 🔍 Reflection Capabilities
 
 Import the dynamic type reflection system:
 
@@ -127,7 +123,7 @@ Import the dynamic type reflection system:
 import { DynamicTypeReflection } from 'tydy';
 ```
 
-Use reflection capabilities in TyDy to inspect and manage dynamic types
+Use reflection capabilities in TyDy to inspect and manage dynamic types:
 
 ```typescript
 // Define a dynamic type representing a person
@@ -145,7 +141,7 @@ const properties = DynamicTypeReflection.getProperties(personType);
 console.log(`Properties of personType: ${properties}`); // Should output: "Properties of personType: name,age"
 ```
 
-## 🏗️ Code Generation
+### 🏗️ Code Generation
 
 Import the code generator:
 
@@ -153,7 +149,7 @@ Import the code generator:
 import { CodeGenerator } from 'tydy';
 ```
 
-Use it to create code based on a template with type constraints. 
+Use it to create code based on a template with type constraints:
 
 ```typescript
 const template = 'function {{name}}() { return {{value}}; }';
@@ -161,7 +157,7 @@ const constraints = { name: 'getName', value: '"Alice"' };
 const generatedCode = CodeGenerator.generateCode(template, constraints);
 ```
 
-## 🌐 Third-Party Library Wrapping
+### 🌐 Third-Party Library Wrapping
 
 Import the third-party type wrapper:
 
@@ -169,7 +165,7 @@ Import the third-party type wrapper:
 import { ThirdPartyTypeWrapper  } from 'tydy';
 ```
 
-Use it to wrap and interact with a third-party library in a type-safe manner. 
+Use it to wrap and interact with a third-party library in a type-safe manner:
 
 ```typescript
 const someLibrary = {
