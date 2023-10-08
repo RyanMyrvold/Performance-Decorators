@@ -19,14 +19,13 @@ graph TD
     subgraph DynamicTypeSafe
       CreateDynamicType
     end
-    subgraph DynamicTypeReflection
-      RegisterType
-    end
     subgraph DynamicTypeValidator
       ValidateType
+      GetDiscrepancies
     end
     subgraph CodeGenerator
-      GenerateCode
+      PopulateTemplate
+      CompileComplexTemplate
     end
     subgraph ThirdPartyTypeWrapper
       WrapWithProxy
@@ -34,9 +33,8 @@ graph TD
   end
 
   DynamicTypeSafe --> |creates| DynamicTypes
-  DynamicTypes --> |registers with| DynamicTypeReflection
-  DynamicTypeSafe --> |validates| DynamicTypeValidator
-  DynamicTypeSafe --> |generates| CodeGenerator
+  DynamicTypes --> |validates with| DynamicTypeValidator
+  DynamicTypes --> |generates code using| CodeGenerator
   DynamicTypeSafe --> |wraps with| ThirdPartyTypeWrapper
 ```
 
