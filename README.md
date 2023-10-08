@@ -1,20 +1,15 @@
 # 🌌 TyDy
-
-🛠 Dynamic, type-safe utilities for TypeScript, in under 150 Lines of Code.
-
+🛠 Dynamic, type-safe utilities for TypeScript, focusing on runtime type safety, in under 150 Lines of Code.
 ## 🎉 Introduction
-
-The name "TyDy" is a blend of "Ty" and "Dy," where "Ty" represents TypeScript, and "Dy" suggests "dynamic." It reflects the core focus of the library, which is to provide dynamic and type-safe utilities for TypeScript.
-
-TyDy provides a cohesive set of utilities designed for developers working with dynamic data structures in TypeScript. It ensures runtime type safety, offers reflection capabilities, provides validation tools, and more.
-
+The name "TyDy" is a blend of "Ty" and "Dy," where "Ty" represents type, and "Dy" suggests "dynamic." It reflects the core focus of the library, which is to provide dynamic and type-safe utilities at runtime.
+TyDy is geared towards developers who need to handle and ensure type safety during runtime, especially when dealing with dynamic data structures in TypeScript. This is particularly useful when working with data whose structure might not be known at compile time but needs to be validated and manipulated safely during execution.
 ## Features
-
-- 💼 Dynamic Type Creation: Generate and work with types on-the-fly.
-- ✅ Type Validation: Ensure runtime type safety for your dynamic structures.
-- 🔍 Reflection Capabilities: Inspect and manage your dynamic types.
-- 🏗️ Code Generation: Generate code based on templates with type constraints.
-- 🌐 Third-party Library Wrapping: Interact with third-party libraries in a type-safe manner.
+- 💼 **Dynamic Type Creation at Runtime**: Efficiently generate and work with types on-the-fly during runtime.
+- ✅ **Runtime Type Validation**: Ensure type correctness and safety for your dynamic structures when your application is running.
+- 🔍 **Reflection Capabilities**: Dive deep and manage your dynamic types at runtime.
+- 🏗️ **Code Generation**: Dynamically generate code snippets based on templates with type constraints during execution.
+- 🌐 **Third-party Library Wrapping**: Interact with third-party libraries in a type-safe manner, ensuring runtime safety.
+Note: While TypeScript inherently offers compile-time type safety, TyDy complements this by emphasizing on runtime type validation, giving you a comprehensive type-safe experience.
 
 ## 🌟 Visualizing TyDy
 
