@@ -9,33 +9,48 @@ TyDy is geared towards developers who need to handle and ensure type safety duri
 - 🔍 **Reflection Capabilities**: Dive deep and manage your dynamic types at runtime.
 - 🏗️ **Code Generation**: Dynamically generate code snippets based on templates with type constraints during execution.
 - 🌐 **Third-party Library Wrapping**: Interact with third-party libraries in a type-safe manner, ensuring runtime safety.
+
 Note: While TypeScript inherently offers compile-time type safety, TyDy complements this by emphasizing on runtime type validation, giving you a comprehensive type-safe experience.
 
 ## 🌟 Visualizing TyDy
 
 ```mermaid
-graph TD
-  subgraph TyDy
-    subgraph DynamicTypeSafe
-      CreateDynamicType
-    end
-    subgraph DynamicTypeValidator
-      ValidateType
-      GetDiscrepancies
-    end
-    subgraph CodeGenerator
-      PopulateTemplate
-      CompileComplexTemplate
-    end
-    subgraph ThirdPartyTypeWrapper
-      WrapWithProxy
-    end
-  end
+flowchart TD
+  %% Main Library
+    subgraph "🌌 TyDy Library"
+        %% Dynamic Type Creation Module
+        subgraph "💼 Dynamic Type Creation"
+            DTS[DynamicTypeSafe] --> CT[CreateDynamicType]
+            CT --> DT[Dynamic Types]
+        end
 
-  DynamicTypeSafe --> |creates| DynamicTypes
-  DynamicTypes --> |validates with| DynamicTypeValidator
-  DynamicTypes --> |generates code using| CodeGenerator
-  DynamicTypeSafe --> |wraps with| ThirdPartyTypeWrapper
+        %% Runtime Type Validation Module
+        subgraph "✅ Runtime Type Validation"
+            DT --> DTV[DynamicTypeValidator]
+            DTV --> Validate
+            Validate -->|"Valid"| Success
+            Validate -->|"Invalid"| Failure
+        end
+
+        %% Reflection Capabilities Module
+        subgraph "🔍 Reflection Capabilities"
+            DT --> DTR[DynamicTypeReflection]
+            DTR --> RT[RegisterType]
+            DTR --> Observe[Observer Hooks]
+        end
+
+        %% Code Generation Module
+        subgraph "🏗️ Code Generation"
+            DT --> CG[CodeGenerator]
+            CG --> Template[Populate Templates]
+        end
+
+        %% Third-Party Library Wrapping Module
+        subgraph "🌐 Third-Party Library Wrapping"
+            TPTW[ThirdPartyTypeWrapper] --> Proxy[Wrap with Proxy]
+            Proxy --> DT
+        end
+    end
 ```
 
 ## 📦 Installation
@@ -48,33 +63,36 @@ npm install tydy --save
 
 ## 🚀 Usage
 
-### 📚 Type Registration
 
-In your TypeScript projects, you may come across scenarios where type registration becomes essential for maintaining code quality and ensuring type safety. TyDy provides a utility called `DynamicTypeReflection` for this purpose.
+### 📚 Type Registration with Observer Hooks
 
-#### What is Type Registration?
+In your TypeScript projects, you may come across scenarios where type registration becomes essential for maintaining code quality and ensuring type safety. TyDy provides a utility called `DynamicTypeReflection` for this purpose, with enhanced capabilities like observer hooks to track type additions or removals.
 
-Type registration involves informing the TypeScript runtime system about the existence and structure of dynamic types. It serves as a way to validate, inspect, and work with these types during runtime. While TypeScript performs static type checking at compile-time, type registration can help with runtime type operations.
+#### How to Register Types and Use Observer Hooks
 
-#### When is Type Registration Needed?
-
-Type registration can be beneficial in various scenarios, including:
-
-1. **Dynamic Data Structures:** When you work with dynamic data structures where the shape of an object can change based on user input or external data sources. Registering these dynamic types allows you to validate and manipulate them at runtime.
-2. **Third-Party Libraries:** When you interact with third-party JavaScript libraries that may not have TypeScript type definitions. Registering the types used with these libraries helps ensure type safety when using their APIs.
-3. **Runtime Configurations:** In cases where your application's configuration is dynamic and can change without a fixed schema, type registration can help validate and reflect on configuration objects.
-
-#### How to Register Types
-
-To register a type, you can use TyDy's `DynamicTypeReflection` utility by calling `DynamicTypeReflection.registerType(type)`.
+To register a type and set up observers for type changes, you can use TyDy's `DynamicTypeReflection` utility. Here's an example:
 
 ```typescript
 import { DynamicTypeReflection } from 'tydy';
 
 const myDynamicType = { name: 'string', age: 'number' };
 
+// Observer to listen for type additions or removals
+const typeObserver = {
+    onTypeAdded: (type) => {
+        console.log("Added type:", type);
+    },
+    onTypeRemoved: (type) => {
+        console.log("Removed type:", type);
+    }
+};
+
+// Register the observer
+DynamicTypeReflection.addObserver(typeObserver);
+
 // Register the dynamic type with the runtime system
 DynamicTypeReflection.registerType(myDynamicType);
+// Observer will log: "Added type: { name: 'string', age: 'number' }"
 ```
 
 ### 💼 Dynamic Type Creation
@@ -167,7 +185,6 @@ const someLibrary = {
 const wrappedLibrary = ThirdPartyTypeWrapper.wrapWithProxy(someLibrary);
 const result = wrappedLibrary.getValue();
 ```
-
 ## Contribution
 
 Interested in contributing to TyDy? See our contribution guidelines.

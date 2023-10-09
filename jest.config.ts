@@ -4,7 +4,7 @@ import type { Config } from '@jest/types';
 const config: Config.InitialOptions = {
   verbose: true,
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.tsx?$': ['ts-jest', {tsconfig: 'tsconfig.json'}]
   },
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: [
@@ -30,11 +30,6 @@ const config: Config.InitialOptions = {
   // transformIgnorePatterns: [
   //   "/node_modules/(?!module-that-needs-transpiling/)"
   // ],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json'
-    }
-  }
 };
 
 export default config;

@@ -4,10 +4,10 @@
 export class DynamicTypeSafe {
 
     /**
-     * Creates a dynamic type based on the provided schema.
-     * @param schema The structure definition.
-     * @returns A constructor function for the dynamic type.
-     */
+    * Creates a dynamic type based on the provided schema.
+    * @param schema The structure definition.
+    * @returns A constructor function for the dynamic type.
+    */
     public static createDynamicType(schema: Record<string, string>): new () => any {
         const validTypes = ['string', 'number', 'boolean', 'object', 'function', 'symbol', 'undefined'];
         for (const key in schema) {

@@ -6,27 +6,30 @@ import { TypeConstraint } from "./DynamicTypeReflection";
 export class CodeGenerator {
 
     /**
-     * Populates a template based on the provided type constraints.
-     * @param template The code template.
-     * @param typeConstraints Constraints for the code.
-     * @returns Populated code as a string.
-     */
-    public static populateTemplate(template: string, typeConstraints: TypeConstraint): string {
-        let code = template;
-        for (let key in typeConstraints) {
-            const value = typeConstraints[key];
-            const placeholder = `{{${key}}}`;
-
-            if (Array.isArray(value)) {
-                code = code.replace(new RegExp(placeholder, 'g'), value.join(','));
-            } else {
-                code = code.replace(new RegExp(placeholder, 'g'), String(value));
+    * Populates a template based on the provided type constraints.
+    * @param template The code template.
+    * @param typeConstraints Constraints for the code.
+    * @returns Populated code as a string.
+    */
+    public static populateTemplate(template: string, constraints: any): string {
+        function replacePlaceholders(temp: string, constraint: any, prefix = ''): string {
+            for (let key in constraint) {
+                if (typeof constraint[key] === 'object' && !Array.isArray(constraint[key])) {
+                    temp = replacePlaceholders(temp, constraint[key], prefix + key + '.');
+                } else {
+                    const placeholder = `{{${prefix}${key}}}`;
+                    const value = Array.isArray(constraint[key]) ? constraint[key].join(', ') : constraint[key];
+                    while (temp.includes(placeholder)) {
+                        temp = temp.replace(placeholder, value);
+                    }
+                }
             }
+            return temp;
         }
-
-        code = code.replace(/,([^ ])/g, ', $1');
-        return code;
+        return replacePlaceholders(template, constraints);
     }
+    
+
 
     /**
      * Compiles a template with enhanced logic.
@@ -35,7 +38,7 @@ export class CodeGenerator {
      * @returns Compiled code as a string.
      */
     public static compileComplexTemplate(template: string, typeConstraints: TypeConstraint): string {
-        let loopTemplate = /@for\(([^)]+)\) (.+?)@endfor/g;  
+        let loopTemplate = /@for\(([^)]+)\) (.+?)@endfor/g;
         template = template.replace(loopTemplate, (_, loopVar, loopContent) => {
             const loopItems = typeConstraints[loopVar];
             if (Array.isArray(loopItems)) {
