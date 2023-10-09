@@ -1,4 +1,5 @@
 // Importing all test suites
+import './CodeGenerator.test';
 import './DynamicTypeSafe.test';
 import './DynamicTypeValidator.test';
 import './EdgeCases.test';
