@@ -19,9 +19,11 @@ export class CodeGenerator {
                 } else {
                     const placeholder = `{{${prefix}${key}}}`;
                     const value = Array.isArray(constraint[key]) ? constraint[key].join(', ') : constraint[key];
-                    while (temp.includes(placeholder)) {
+                    let previousTemp;
+                    do {
+                        previousTemp = temp;
                         temp = temp.replace(placeholder, value);
-                    }
+                    } while (temp !== previousTemp);
                 }
             }
             return temp;
@@ -43,8 +45,11 @@ export class CodeGenerator {
         template = template.replace(loopTemplate, (_, loopVar, loopContent) => {
             const loopItems = typeConstraints[loopVar];
             if (Array.isArray(loopItems)) {
-                // Use the `map()` function to generate code for each item in the loop.
-                return loopItems.map(item => loopContent.replace(/{{item}}/g, item)).join('');
+                // Safely replace items in the content.
+                return loopItems.map(item => {
+                    const safeItem = item.replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&");
+                    return loopContent.replace(new RegExp(`{{item}}`, 'g'), safeItem);
+                }).join('');
             }
             return '';
         });
