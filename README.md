@@ -2,6 +2,8 @@
 
 ![NPM Package Publish](https://github.com/Mervsy/TyDy/actions/workflows/npm-publish.yml/badge.svg)
 
+[![CodeQL](https://github.com/Mervsy/TyDy/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Mervsy/TyDy/actions/workflows/github-code-scanning/codeql)
+
 🛠 Dynamic, type-safe utilities for TypeScript, focusing on runtime type safety.
 ## 🎉 Introduction
 The name "TyDy" is a blend of "Ty" and "Dy," where "Ty" represents "type", and "Dy" suggests "dynamic." It reflects the core focus of the library, which is to provide dynamic and type-safe utilities at runtime.
