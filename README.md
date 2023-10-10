@@ -187,8 +187,8 @@ const result = wrappedLibrary.getValue();
 ```
 ## Contribution
 
-Are you interested in contributing to TyDy? See our contribution guidelines.
+Are you interested in contributing to TyDy? See our [contribution guidelines](./CONTRIBUTION.md).
 
 ## License
 
-MIT License. See LICENSE for more details.
+MIT License. See [LICENSE](./LICENSE) for more details.
