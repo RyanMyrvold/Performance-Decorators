@@ -1,5 +1,8 @@
-
-// Type guard function to check if a string is a valid type descriptor.
+/**
+ * Type guard function to check if a string is a valid type descriptor.
+ * @param str - The string to check.
+ * @returns Boolean indicating if the string is a valid type descriptor.
+ */
 function isValidTypeDescriptor(str: string): boolean {
   const validTypes = ['string', 'number', 'boolean', 'object', 'function', 'symbol', 'undefined'];
   return validTypes.includes(str);
@@ -12,8 +15,9 @@ export class DynamicTypeSafe {
 
   /**
    * Creates a dynamic type based on the provided schema.
-   * @param schema The structure definition.
+   * @param schema - The structure definition.
    * @returns A constructor function for the dynamic type.
+   * @throws Error if the schema contains an invalid type descriptor.
    */
   public static createDynamicType(schema: Record<string, string>): new () => any {
     // Validate the schema.

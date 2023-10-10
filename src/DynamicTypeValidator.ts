@@ -7,8 +7,8 @@ export class DynamicTypeValidator {
 
     /**
      * Validates if an instance matches the type's structure.
-     * @param instance The object instance.
-     * @param type The expected type.
+     * @param instance - The object instance.
+     * @param type - The expected type.
      * @returns Boolean indicating if instance matches type.
      */
     static validateType(instance: any, type: any): boolean {
@@ -34,8 +34,8 @@ export class DynamicTypeValidator {
 
     /**
      * Validates if an instance matches the type's structure and returns discrepancies.
-     * @param instance The object instance.
-     * @param type The expected type.
+     * @param instance - The object instance.
+     * @param type - The expected type.
      * @returns An array of discrepancies if any, else an empty array.
      */
     public static getDiscrepancies(instance: any, type: any): string[] {
@@ -58,8 +58,8 @@ export class DynamicTypeValidator {
 
     /**
      * Validates an instance against a provided schema with custom constraints.
-     * @param instance The object instance.
-     * @param schema The expected schema.
+     * @param instance - The object instance.
+     * @param schema - The expected schema.
      * @returns An array of discrepancies if any, else an empty array.
      */
     static validateSchema(instance: any, schema: any): string[] {

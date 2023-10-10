@@ -1,4 +1,3 @@
-
 /**
  * Represents a constraint for types.
  */

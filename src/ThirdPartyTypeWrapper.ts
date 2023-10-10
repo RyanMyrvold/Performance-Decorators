@@ -5,8 +5,9 @@ export class ThirdPartyTypeWrapper {
 
   /**
    * Wraps a library with a type-safe proxy.
-   * @param lib The third-party library.
+   * @param lib - The third-party library.
    * @returns Type-safe proxy around the library.
+   * @throws Error if access to a property is not allowed for type safety.
    */
   public static wrapWithProxy(lib: any): any {
     return new Proxy(lib, {

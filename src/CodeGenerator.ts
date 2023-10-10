@@ -7,11 +7,18 @@ export class CodeGenerator {
 
     /**
      * Populates a template based on the provided type constraints.
-     * @param template The code template.
-     * @param typeConstraints Constraints for the code.
+     * @param template - The code template.
+     * @param constraints - Constraints for the code.
      * @returns Populated code as a string.
      */
     public static populateTemplate(template: string, constraints: any): string {
+        /**
+         * Replaces placeholders in the template with the corresponding values from the constraints object.
+         * @param temp - The template string.
+         * @param constraint - The constraint object.
+         * @param prefix - The prefix to use for the placeholder keys.
+         * @returns The template string with placeholders replaced by their corresponding values.
+         */
         function replacePlaceholders(temp: string, constraint: any, prefix = ''): string {
             for (let key in constraint) {
                 if (typeof constraint[key] === 'object' && !Array.isArray(constraint[key])) {
@@ -33,8 +40,8 @@ export class CodeGenerator {
 
     /**
      * Compiles a template with enhanced logic.
-     * @param template The code template.
-     * @param typeConstraints Constraints for the code.
+     * @param template - The code template.
+     * @param typeConstraints - Constraints for the code.
      * @returns Compiled code as a string.
      */
     public static compileComplexTemplate(template: string, typeConstraints: TypeConstraint): string {
