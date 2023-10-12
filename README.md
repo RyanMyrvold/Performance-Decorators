@@ -1,3 +1,5 @@
+![](banner.jpg)
+
 # 🌌 TyDy
 
 ![NPM Package Publish](https://github.com/Mervsy/TyDy/actions/workflows/npm-publish.yml/badge.svg)
