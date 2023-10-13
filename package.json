@@ -1,6 +1,6 @@
 {
   "name": "tydy",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "A dynamic type safety library for TypeScript, offering runtime validations, type-safe interactions, and code generation utilities.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

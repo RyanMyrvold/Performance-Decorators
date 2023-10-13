@@ -1,4 +1,4 @@
-import { DynamicTypeReflection } from "../src/DynamicTypeReflection";
+import { DynamicTypeReflection, TypeObserver } from "../src/DynamicTypeReflection";
 
 describe('DynamicTypeReflection', () => {
 
@@ -24,17 +24,17 @@ describe('DynamicTypeReflection', () => {
         });
 
         it('notifies observers when a type is registered', () => {
-            const observerMock = { onTypeAdded: jest.fn() };
+            const observerMock = { onTypeRegistered: jest.fn() } as unknown as TypeObserver;
             DynamicTypeReflection.addObserver(observerMock);
 
             const testType = { prop: 'string' };
             DynamicTypeReflection.registerType(testType);
 
-            expect(observerMock.onTypeAdded).toHaveBeenCalledWith(testType);
+            expect(observerMock.onTypeRegistered).toHaveBeenCalledWith(testType);
         });
 
         it('notifies observers when a type is deregistered', () => {
-            const observerMock = { onTypeRemoved: jest.fn() };
+            const observerMock = { onTypeDeregistered: jest.fn() };
 
             const testType = { prop: 'string' };
             DynamicTypeReflection.registerType(testType);
@@ -42,7 +42,7 @@ describe('DynamicTypeReflection', () => {
             DynamicTypeReflection.addObserver(observerMock);
             DynamicTypeReflection.deregisterType(testType);
 
-            expect(observerMock.onTypeRemoved).toHaveBeenCalledWith(testType);
+            expect(observerMock.onTypeDeregistered).toHaveBeenCalledWith(testType);
         });
 
     });

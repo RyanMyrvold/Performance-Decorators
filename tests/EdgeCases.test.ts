@@ -1,10 +1,11 @@
 import {
     DynamicTypeSafe,
-    DynamicTypeReflection,
     DynamicTypeValidator,
     CodeGenerator,
     ThirdPartyTypeWrapper
 } from '../src/index';
+
+import { DynamicTypeReflection, TypeObserver } from "../src/DynamicTypeReflection";
 
 describe('Edge Cases', () => {
 
@@ -73,21 +74,21 @@ describe('Edge Cases', () => {
         });
 
         it('successfully adds and removes observer', () => {
-            const observer = {
-                onTypeAdded: jest.fn(),
-                onTypeRemoved: jest.fn(),
-            };
+            const observerMock: TypeObserver = {
+                onTypeRegistered: jest.fn(),
+                onTypeDeregistered: jest.fn()
+              };
             
-            DynamicTypeReflection.addObserver(observer);
+            DynamicTypeReflection.addObserver(observerMock);
             const type = { name: 'string' };
             DynamicTypeReflection.registerType(type);
 
-            expect(observer.onTypeAdded).toHaveBeenCalledWith(type);
+            expect(observerMock.onTypeRegistered).toHaveBeenCalledWith(type);
 
-            DynamicTypeReflection.removeObserver(observer);
+            DynamicTypeReflection.removeObserver(observerMock);
             DynamicTypeReflection.deregisterType(type);
 
-            expect(observer.onTypeRemoved).not.toHaveBeenCalledWith(type);
+            expect(observerMock.onTypeDeregistered).not.toHaveBeenCalledWith(type);
         });
 
     });

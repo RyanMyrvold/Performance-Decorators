@@ -8,16 +8,16 @@ export type TypeConstraint = Record<string, string | string[] | number | boolean
  */
 export interface TypeObserver {
   /**
-   * Called when a new type is added.
-   * @param type - The type that was added.
+   * Called when a new type is registered.
+   * @param type - The type that was registered.
    */
-  onTypeAdded?(type: any): void;
+  onTypeRegistered?(type: any): void;
 
   /**
-   * Called when a type is removed.
-   * @param type - The type that was removed.
+   * Called when a type is deregistered.
+   * @param type - The type that was deregistered.
    */
-  onTypeRemoved?(type: any): void;
+  onTypeDeregistered?(type: any): void;
 }
 
 /**
@@ -33,16 +33,16 @@ export class DynamicTypeReflection {
    */
   static registerType(type: any): void {
     this.registeredTypes.add(type);
-    this.notifyTypeAdded(type);
+    this.notifyTypeRegistered(type);
   }
 
   /**
-   * Removes a type from the runtime system.
-   * @param type - The type to be removed.
+   * Deregisters a type from the runtime system.
+   * @param type - The type to be deregistered.
    */
-  static deregisterType(type: Record<string, string>): void {
+  static deregisterType(type: any): void {
     this.registeredTypes.delete(type);
-    this.notifyTypeRemoved(type);
+    this.notifyTypeDeregistered(type);
   }
 
   /**
@@ -69,7 +69,7 @@ export class DynamicTypeReflection {
    * @param type - The type to check.
    * @returns Boolean indicating validity.
    */
-  static hasValidDefinition(type: Record<string, string>): boolean {
+  static hasValidDefinition(type: any): boolean {
     return this.registeredTypes.has(type);
   }
 
@@ -85,17 +85,25 @@ export class DynamicTypeReflection {
     return Object.keys(type);
   }
 
-  /** Notifies all observers about a newly added type. */
-  private static notifyTypeAdded(type: any): void {
+  /**
+   * Notifies all observers about a newly registered type.
+   * @private
+   * @param type - The type that was registered.
+   */
+  private static notifyTypeRegistered(type: any): void {
     for (const observer of this.observers) {
-      observer.onTypeAdded?.(type);
+      observer.onTypeRegistered?.(type);
     }
   }
 
-  /** Notifies all observers about a removed type. */
-  private static notifyTypeRemoved(type: any): void {
+  /**
+   * Notifies all observers about a deregistered type.
+   * @private
+   * @param type - The type that was deregistered.
+   */
+  private static notifyTypeDeregistered(type: any): void {
     for (const observer of this.observers) {
-      observer.onTypeRemoved?.(type);
+      observer.onTypeDeregistered?.(type);
     }
   }
 }
