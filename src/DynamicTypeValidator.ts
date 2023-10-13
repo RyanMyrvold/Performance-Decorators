@@ -1,5 +1,3 @@
-import { TypeConstraint } from "./DynamicTypeReflection";
-
 /**
  * Offers utilities for runtime type validation.
  */
@@ -56,12 +54,13 @@ export class DynamicTypeValidator {
     return discrepancies;
   }
 
-  /**
-   * Validates if an array instance matches the type's structure and returns discrepancies.
-   * @param instance - The object instance.
-   * @param type - The expected type.
-   * @returns An array of discrepancies if any, else an empty array.
-   */
+  /***
+  * This function checks whether all elements of an array are of the same type, and throws an error if they are not.
+  * @param arr - the array to check
+  * @param type - the type to check for
+  * @param customMessage - an optional custom message to throw if the array contains elements of different types
+  * @returns true if all elements of the array are of the same type
+  */
   public isArrayType(arr: any[], type: string, customMessage?: string): boolean {
     if (!arr.every(item => typeof item === type)) {
       throw new TypeError(customMessage || `Expected array of ${type}, got array of different types`);
@@ -69,12 +68,14 @@ export class DynamicTypeValidator {
     return true;
   }
 
+
+
   /**
-   * Validates if an instance matches the type's structure and throws an error if not.
-   * @param instance - The object instance.
-   * @param type - The expected type.
-   * @param customMessage - Optional custom error message.
-   * @returns Boolean indicating if instance matches type.
+   * Asynchronously checks if a value is of a certain type.
+   * @param {any} value The value to check.
+   * @param {string} type The type to check against.
+   * @param {string} [customMessage] A custom message to use if the check fails.
+   * @returns {Promise<boolean>} A promise that resolves to true if the value is of the given type, or rejects if not.
    */
   async isAsyncType(value: any, type: string, customMessage?: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -86,6 +87,15 @@ export class DynamicTypeValidator {
     });
   }
 
+
+  /**
+   * Validates if the type of the value is the same as the specified type.
+   * If the type is not the same, a TypeError is thrown with the specified custom message.
+   * @param value - The object value.
+   * @param type - The expected type.
+   * @param customMessage - Optional custom error message.
+   * @returns Boolean indicating if instance matches type.
+   */
   public isStrictType(value: any, type: string, customMessage?: string): boolean {
     if (typeof value !== type || (type === 'number' && isNaN(value))) {
       throw new TypeError(customMessage || `Expected ${type}, got ${typeof value}`);
@@ -94,12 +104,12 @@ export class DynamicTypeValidator {
   }
 
   /**
-   * Validates if an instance matches the type's structure and throws an error if not.
-   * @param instance - The object instance.
-   * @param type - The expected type.
-   * @param customMessage - Optional custom error message.
-   * @returns Boolean indicating if instance matches type.
-   */
+  * Validates if the value is of a given type.
+  * @param value - The value to check.
+  * @param type - The type to check against.
+  * @param customMessage - An optional custom error message.
+  * @returns true if the value is of the given type; otherwise, false.
+  **/
   public isOfType(value: any, type: string, customMessage?: string): boolean {
     if (typeof value !== type) {
       throw new TypeError(customMessage || `Expected ${type}, got ${typeof value}`);
@@ -137,7 +147,7 @@ export class DynamicTypeValidator {
    * @param defaultSchema - The default schema.
    * @returns The object with default values assigned.
    */
-  assignDefaultValues(obj: any, defaultSchema: {[key: string]: any}): any {
+  assignDefaultValues(obj: any, defaultSchema: { [key: string]: any }): any {
     const newObj = { ...obj };
     for (const [key, defaultValue] of Object.entries(defaultSchema)) {
       if (typeof defaultValue === 'object' && defaultValue !== null) {
