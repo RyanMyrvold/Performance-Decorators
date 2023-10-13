@@ -10,7 +10,7 @@
 
 ## 🎉 Introduction
 
-The name "TyDy" is a blend of "Ty" and "Dy," where "Ty" represents "type", and "Dy" suggests "dynamic." It reflects the core focus of the library, which is to provide dynamic and type-safe utilities at runtime.
+The name "TyDy", pronounced /ˈtaɪ daɪ/ is a blend of "Ty" and "Dy," where "Ty" represents "type", and "Dy" suggests "dynamic." It reflects the core focus of the library, which is to provide dynamic and type-safe utilities at runtime.
 TyDy is geared towards developers who need to handle and ensure type safety during runtime, especially when dealing with dynamic data structures in TypeScript. This is particularly useful when working with data whose structure might not be known at compile time but needs to be validated and manipulated safely during execution.
 
 ## Features
