@@ -130,7 +130,7 @@ const result = wrappedLibrary.getValue();
 
 ## Contribution
 
-Interested in contributing to TyDy? See our [contribution guidelines](./CONTRIBUTION.md).
+Interested in contributing to TyDy? See our [contribution guidelines](./CONTRIBUTING.md).
 
 ## License
 

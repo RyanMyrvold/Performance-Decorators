@@ -15,9 +15,6 @@ const config: Config.InitialOptions = {
     'json',
     'node'
   ],
-  reporters: [
-    'jest-github-reporter'
-  ]
   // Optional: If you use Babel alongside TypeScript, you might need its configuration as well
   // transform: {
   //   '^.+\\.(ts|tsx)$': 'ts-jest',

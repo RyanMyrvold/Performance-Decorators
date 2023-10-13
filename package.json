@@ -27,7 +27,6 @@
     "jest": "*",
     "ts-jest": "*",
     "ts-node": "*",
-    "typescript": "*",
-    "jest-github-reporter": "*"
+    "typescript": "*"
   }
 }
