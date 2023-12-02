@@ -11,7 +11,9 @@
       "esModuleInterop": true,                     // Treat CommonJS modules as ES6 modules for imports
       "skipLibCheck": true,                        // Skip type checking of declaration files
       "forceConsistentCasingInFileNames": true,    // Avoid potential issues on case-insensitive file systems
-      "isolatedModules": true                      // Ensure each file can be safely transpiled without relying on other imports
+      "isolatedModules": true,                      // Ensure each file can be safely transpiled without relying on other imports
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
     },
     "include": [
       "src/**/*.ts"                                // Include all TypeScript files in src directory

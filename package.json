@@ -1,7 +1,7 @@
 {
-  "name": "tydy",
+  "name": "performance-decorators",
   "version": "2.0.0",
-  "description": "A TypeScript library for runtime type safety and dynamic type management.",
+  "description": "A set of decorators to help with performance testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,15 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mervsy/TyDy"
+    "url": "https://github.com/Mervsy/Performance-Decorators"
   },
   "keywords": [
     "typescript",
-    "dynamic",
-    "type safety",
-    "runtime validation",
-    "code generation",
-    "type reflection"
+    "monitoring",
+    "debugging",
+    "performance",
+    "decorators"
   ],
   "author": "Ryan Myrvold",
   "license": "MIT",
@@ -28,5 +27,8 @@
     "ts-jest": "*",
     "ts-node": "*",
     "typescript": "*"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.13"
   }
 }

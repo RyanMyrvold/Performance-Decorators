@@ -1,136 +1,83 @@
-![](banner.jpg)
+# 🚀 Performance Decorators
 
-# 🌌 TyDy
+Performance Decorators is a powerful and versatile TypeScript library designed to make performance monitoring in your applications as seamless as possible. 📊 Whether you're working in Node.js or in the browser, this library provides you with a set of decorators to gain insights into method execution times, memory usage, error occurrences, and much more!
 
-![NPM Package Publish](https://github.com/Mervsy/TyDy/actions/workflows/npm-publish.yml/badge.svg)
-[![CodeQL](https://github.com/Mervsy/TyDy/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Mervsy/TyDy/actions/workflows/github-code-scanning/codeql)
-🛠 A TypeScript library for runtime type safety and dynamic type management.
+## 🌟 Features
 
-## 🎉 Introduction
-
-TyDy (pronounced /ˈtaɪ daɪ/) is a TypeScript library that provides robust runtime type safety. It is an essential tool for working with dynamic data structures and APIs where data types can be unpredictable.
-
-## 🌈 Features
-
-- 💼 **Dynamic Type Management**: Effortlessly define and manage dynamic types during runtime.
-- ✅ **Runtime Type Validation**: Automatically validates data against your dynamic type definitions.
-- 🔍 **Type Observability**: Programmatically respond to type changes.
-- 📊 **JSON Type Inference**: Automatically infer types from complex JSON data structures.
-
-## 🌟 Visualizing TyDy
-
-```mermaid
-flowchart TD
-  subgraph "🌌 TyDy Library"
-    subgraph "💼 Dynamic Type Management"
-      TypeRegistry[TypeRegistry]
-    end
-    subgraph "✅ Runtime Type Validation"
-      TypeValidator[TypeValidator]
-    end
-    subgraph "🔍 Type Observability"
-      TypeObserver[TypeObserver]
-    end
-    subgraph "📊 JSON Type Inference"
-      JsonTypeInferencer[JsonTypeInferencer]
-    end
-  end
-  TypeRegistry -->|Used by| TypeValidator
-  TypeRegistry -->|Used by| TypeObserver
-  TypeRegistry -->|Used by| JsonTypeInferencer
-  TypeValidator -->|Validates| TypeRegistry
-  TypeObserver -->|Observes| TypeRegistry
-  JsonTypeInferencer -->|Infers| TypeRegistry
-```
+- **LogExecutionTime**: ⏱️ Easily logs the execution time of your methods, helping you identify performance bottlenecks.
+- **WarnPerformanceThreshold**: ⚠️ Warns you if a method's execution time exceeds a certain threshold, perfect for keeping an eye on critical performance metrics.
+- **LogMemoryUsage**: 🧠 Logs memory usage before and after method execution, giving you a clear view of how your methods affect memory consumption.
+- **LogMethodError**: 🚨 Elegantly logs errors that occur during method execution, making error tracking and debugging a breeze.
+- ...and more exciting features to explore!
 
 ## 📦 Installation
 
+Get started by installing the package using npm:
+
 ```bash
-npm install tydy --save
+npm install performance-decorators
 ```
 
-## 🚀 Usage
+## 🛠️ Usage
 
-### 🔍 Type Observability with Observer Hooks
+Here's how you can utilize the various decorators from this library in your projects:
 
-```typescript
-import { TypeObserver } from "tydy";
-
-// Initialize a new observer instance
-const observer = new TypeObserver();
-
-// Register event handlers
-observer.on("typeAdded", (typeName: string) => {
-  console.log(`Type added: ${typeName}`);
-});
-
-observer.on("typeRemoved", (typeName: string) => {
-  console.log(`Type removed: ${typeName}`);
-});
-
-// Operations to add and remove types, which trigger the event handlers
-observer.addType("MyDynamicType");
-observer.removeType("MyDynamicType");
-```
-
-### 📊 JSON Type Inference
+### Log Execution Time
 
 ```typescript
-import { JsonTypeInferencer, InferableType } from 'tydy';
+import { LogExecutionTime } from 'performance-decorators';
 
-// Initialize the inferencer
-const inferencer = new JsonTypeInferencer();
-const result = inferencer.inferNestedTypes({ name: 'Alice', age: 30, address: { street: '123 Elm St' } });
-
-// Check if the result is an object and log its properties
-if (result.type === InferableType.Object || result.type === InferableType.NestedObject) {
-  console.log(result.properties);
+class Example {
+    @LogExecutionTime()
+    myMethod() {
+        // Your method logic here...
+    }
 }
 ```
 
-### 💼 Dynamic Type Management
+### Warn Performance Threshold
 
 ```typescript
-import { TypeRegistry } from "tydy";
-const typeSchema = { name: "string", age: "number" };
+import { WarnPerformanceThreshold } from 'performance-decorators';
 
-const MyDynamicType = TypeRegistry.registerType(typeSchema);
+class Example {
+    @WarnPerformanceThreshold()
+    myMethod() {
+        // Your method logic here...
+    }
+}
 ```
 
-### ✅ Runtime Type Validation
+### Log Memory Usage
 
 ```typescript
-import { TypeValidator } from "tydy";
+import { LogMemoryUsage } from 'performance-decorators';
 
-// Define a complex dynamic type
-const MyDynamicType = {
-  name: "string",
-  age: "number",
-  address: {
-    street: "string",
-    zipCode: "number"
-  }
-};
-
-// Create an object to validate
-const myObject = {
-  name: "Alice",
-  age: 30,
-  address: {
-    street: "123 Elm St",
-    zipCode: 12345
-  }
-};
-
-// Validate the object against the dynamic type
-const isValid = TypeValidator.validate(myObject, MyDynamicType);
-console.log(isValid);
+class Example {
+    @LogMemoryUsage()
+    myMethod() {
+        // Your method logic here...
+    }
+}
 ```
 
-## 🙌 Contributing
+### Log Method Error
 
-Contributions are welcomed! For more information on how to contribute, please see our [contribution guidelines](./CONTRIBUTING.md).
+```typescript
+import { LogMethodError } from 'performance-decorators';
 
-## 📝 License
+class Example {
+    @LogMethodError()
+    myMethod() {
+        throw new Error('Example error');
+    }
+}
+```
 
-This project is licensed under the MIT License. For complete details, see the [LICENSE](./LICENSE) file.
+## 👐 Contributing
+
+We love contributions! 💖 Check out our [Contributing Guide](CONTRIBUTING.md) for details on how to help us make this project even better.
+
+## 📄 License
+
+This project is proudly licensed under the [MIT License](LICENSE).

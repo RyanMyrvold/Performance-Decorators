@@ -25,7 +25,7 @@ Please provide a detailed description of the bug that you are experiencing. Be s
 * **Version information:** Please provide the following version information:
     * OS:
     * Browser:
-    * Version of TyDy:
+    * Version of Performance-Decorators:
 * **Additional information:** Please provide any additional information that you think may be helpful.
 
 **Thank you for taking the time to report this bug!** We appreciate your help in making TyDy better.
