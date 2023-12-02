@@ -1,5 +1,6 @@
 /**
- * Decorator to log the memory usage before and after the method execution.
+ * Decorator to log the memory usage before and after the method execution. It uses process.memoryUsage()
+ * in Node.js and performance.memory in browsers (where available).
  * @returns MethodDecorator
  */
 function LogMemoryUsage(): MethodDecorator {
@@ -9,6 +10,7 @@ function LogMemoryUsage(): MethodDecorator {
         }
 
         const originalMethod = descriptor.value;
+
         descriptor.value = function(...args: any[]) {
             let memoryBefore: number | undefined;
             let memoryAfter: number | undefined;
@@ -17,7 +19,7 @@ function LogMemoryUsage(): MethodDecorator {
             if (typeof process !== 'undefined' && process.memoryUsage) {
                 memoryBefore = process.memoryUsage().heapUsed;
             }
-            // Browser environment (non-standard)
+            // Browser environment (non-standard and may not be available in all browsers)
             else if (typeof performance !== 'undefined' && performance.memory) {
                 memoryBefore = performance.memory.usedJSHeapSize;
             }
@@ -34,13 +36,15 @@ function LogMemoryUsage(): MethodDecorator {
             }
 
             if (memoryBefore !== undefined && memoryAfter !== undefined) {
-                console.log(`🧠 [Memory Usage] ${target.constructor.name}.${String(propertyKey)}: Before=${memoryBefore}, After=${memoryAfter}`);
+                const memoryUsed = memoryAfter - memoryBefore;
+                console.log(`🧠 [Memory Usage] ${target.constructor.name}.${String(propertyKey)}: Memory used=${memoryUsed} bytes`);
             } else {
-                console.error('🐞 [Memory Usage] Memory measurement is not supported in this environment.');
+                console.error('🐞 [Log Memory Usage] Memory measurement is not supported in this environment.');
             }
 
             return result;
         };
+
         return descriptor;
     };
 }
