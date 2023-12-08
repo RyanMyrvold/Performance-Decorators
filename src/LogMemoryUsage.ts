@@ -1,9 +1,10 @@
 /**
  * Decorator to log the memory usage before and after the method execution. It uses process.memoryUsage()
  * in Node.js and performance.memory in browsers (where available).
+ * @param memoryHandler - An optional custom memory handler function that takes the memory usage data and method name as parameters.
  * @returns MethodDecorator
  */
-function LogMemoryUsage(): MethodDecorator {
+function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string) => void): MethodDecorator {
     return function(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
         if (typeof descriptor.value !== 'function') {
             throw new Error('🐞 [LogMemoryUsage] Can only be applied to methods.');
@@ -38,6 +39,7 @@ function LogMemoryUsage(): MethodDecorator {
             if (memoryBefore !== undefined && memoryAfter !== undefined) {
                 const memoryUsed = memoryAfter - memoryBefore;
                 console.log(`🧠 [Memory Usage] ${target.constructor.name}.${String(propertyKey)}: Memory used=${memoryUsed} bytes`);
+                memoryHandler?.(memoryUsed, `${target.constructor.name}.${String(propertyKey)}`);
             } else {
                 console.error('🐞 [Log Memory Usage] Memory measurement is not supported in this environment.');
             }

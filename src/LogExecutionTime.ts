@@ -1,9 +1,10 @@
 /**
  * Decorator to log the execution time of a method. It uses high-resolution time in Node.js
  * and performance.now() in browsers.
+ * @param handler - A custom handler function that takes the execution time as a parameter.
  * @returns MethodDecorator
  */
-function LogExecutionTime(): MethodDecorator {
+function LogExecutionTime(handler?: (executionTime: number, methodName: string) => void): MethodDecorator {
     return function(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
         if (typeof descriptor.value !== 'function') {
             throw new Error('🐞 [LogExecutionTime] Can only be applied to methods.');
@@ -24,7 +25,7 @@ function LogExecutionTime(): MethodDecorator {
 
                 // Convert nanoseconds to milliseconds
                 const executionTime = Number(end - start) / 1_000_000;
-                console.log(`⏱️ [Execution Time] ${target.constructor.name}.${String(propertyKey)}: ${executionTime.toFixed(3)} ms`);
+                handler?.(executionTime, `${target.constructor.name}.${String(propertyKey)}`);
                 return result;
             } else if (typeof performance !== 'undefined' && performance.now) {
                 // Browser environment: Use performance.now()
@@ -33,7 +34,7 @@ function LogExecutionTime(): MethodDecorator {
                 end = performance.now();
 
                 const executionTime = end - start;
-                console.log(`⏱️ [Execution Time] ${target.constructor.name}.${String(propertyKey)}: ${executionTime.toFixed(3)} ms`);
+                handler?.(executionTime, `${target.constructor.name}.${String(propertyKey)}`);
                 return result;
             } else {
                 // Unsupported environment: Log error and execute the method without timing
