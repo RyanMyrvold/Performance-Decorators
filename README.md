@@ -98,11 +98,3 @@ class PerformanceExample {
     }
 }
 ```
-
-## 🤝 Contributing
-
-Contributions are welcome and appreciated! Check out our [Contributing Guide](CONTRIBUTING.md) for details on how to participate.
-
-## 📚 License
-
-This project is licensed under the [MIT License](LICENSE).
