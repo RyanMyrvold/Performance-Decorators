@@ -1,6 +1,6 @@
 {
   "name": "performance-decorators",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A set of decorators to help with performance testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mervsy/Performance-Decorators"
+    "url": "https://github.com/RyanMyrvold/Performance-Decorators"
   },
   "keywords": [
     "typescript",
