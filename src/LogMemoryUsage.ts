@@ -5,43 +5,36 @@
  * @returns MethodDecorator
  */
 function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string) => void): MethodDecorator {
+    
+    const isNodeEnvironment = typeof process !== 'undefined' && process.memoryUsage;
+    const isBrowserEnvironment = typeof performance !== 'undefined' && performance.memory;
+
+    function getMemoryUsage(): number | undefined {
+        if (isNodeEnvironment) {
+            return process.memoryUsage().heapUsed;
+        } else if (isBrowserEnvironment) {
+            return performance?.memory?.usedJSHeapSize;
+        }
+        return undefined;
+    }
+
     return function(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
         if (typeof descriptor.value !== 'function') {
             throw new Error('🐞 [LogMemoryUsage] Can only be applied to methods.');
         }
 
         const originalMethod = descriptor.value;
-
         descriptor.value = function(...args: any[]) {
-            let memoryBefore: number | undefined;
-            let memoryAfter: number | undefined;
-
-            // Node.js environment
-            if (typeof process !== 'undefined' && process.memoryUsage) {
-                memoryBefore = process.memoryUsage().heapUsed;
-            }
-            // Browser environment (non-standard and may not be available in all browsers)
-            else if (typeof performance !== 'undefined' && performance.memory) {
-                memoryBefore = performance.memory.usedJSHeapSize;
-            }
-
+            const memoryBefore = getMemoryUsage();
             const result = originalMethod.apply(this, args);
-
-            // Node.js environment
-            if (typeof process !== 'undefined' && process.memoryUsage) {
-                memoryAfter = process.memoryUsage().heapUsed;
-            }
-            // Browser environment (non-standard)
-            else if (typeof performance !== 'undefined' && performance.memory) {
-                memoryAfter = performance.memory.usedJSHeapSize;
-            }
+            const memoryAfter = getMemoryUsage();
 
             if (memoryBefore !== undefined && memoryAfter !== undefined) {
                 const memoryUsed = memoryAfter - memoryBefore;
                 console.log(`🧠 [Memory Usage] ${target.constructor.name}.${String(propertyKey)}: Memory used=${memoryUsed} bytes`);
                 memoryHandler?.(memoryUsed, `${target.constructor.name}.${String(propertyKey)}`);
             } else {
-                console.error('🐞 [Log Memory Usage] Memory measurement is not supported in this environment.');
+                console.error('🐞 [LogMemoryUsage] Memory measurement is not supported in this environment.');
             }
 
             return result;

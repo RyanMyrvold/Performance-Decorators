@@ -5,26 +5,41 @@
  * @returns MethodDecorator
  */
 function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, methodName: string) => void): MethodDecorator {
+    
+    function logError(error: any, methodName: string): Error {
+        // Convert non-Error exceptions to Error instances
+        const errorToLog = error instanceof Error ? error : new Error(`Non-Error exception: ${error}`);
+
+        // Use custom error handler if provided, otherwise log to console
+        if (errorHandler) {
+            errorHandler(errorToLog, methodName);
+        } else {
+            console.error(`🚨 [Error] ${methodName} encountered an error:`, errorToLog);
+        }
+
+        return errorToLog;
+    }
+
     return function(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
+        // Ensure the decorator is applied to a method
         if (typeof descriptor.value !== 'function') {
             throw new Error('🐞 [Log Method Error] Can only be applied to methods.');
         }
 
         const originalMethod = descriptor.value;
+        const methodName = `${target.constructor.name}.${String(propertyKey)}`;
+
         descriptor.value = function(...args: any[]) {
             try {
                 return originalMethod.apply(this, args);
             } catch (error) {
-                if (error instanceof Error) {
-                    console.error(`🚨 [Error] ${target.constructor.name}.${String(propertyKey)} encountered an error: ${error.message}`, error.stack);
-                    errorHandler?.(error, `${target.constructor.name}.${String(propertyKey)}`);
-                } else {
-                    console.error(`🚨 [Error] ${target.constructor.name}.${String(propertyKey)} encountered a non-Error exception: `, error);
-                    errorHandler?.(new Error(`Non-Error exception: ${error}`), `${target.constructor.name}.${String(propertyKey)}`);
-                }
-                if (rethrow) throw error;
+                const errorToRethrow = logError(error, methodName);
+
+                // Rethrow the error if the rethrow flag is true
+                if (rethrow) throw errorToRethrow;
             }
         };
+
         return descriptor;
     };
 }
