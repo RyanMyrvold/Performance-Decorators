@@ -3,5 +3,5 @@ interface Performance {
         usedJSHeapSize: number;
         jsHeapSizeLimit: number;
         totalJSHeapSize: number;
-    };
+    }
 }

@@ -1,17 +1,18 @@
 # 🚀 Performance Decorators
 
-Enhance the performance monitoring in your Node.js or browser applications with the **Performance Decorators** library. This TypeScript library offers a suite of decorators for insightful and efficient performance tracking.
+Elevate your application's performance monitoring in Node.js and browsers with **Performance Decorators**, a TypeScript-based toolkit. Our decorators simplify the task of tracking and optimizing performance.
 
 ## 🌟 Features
 
-- **LogExecutionTime**: ⏱️ Automatically logs execution times, aiding in bottleneck identification.
-- **WarnPerformanceThreshold**: ⚠️ Issues warnings for methods exceeding performance thresholds.
-- **LogMemoryUsage**: 🧠 Monitors and logs memory usage, offering a clear view of resource consumption.
-- **LogMethodError**: 🚨 Gracefully logs and manages method execution errors.
+- **LogExecutionTime**: Method Decorator - Logs method execution times, helping pinpoint performance bottlenecks.
+- **WarnPerformanceThreshold**: Method Decorator - Alerts when methods surpass predefined execution time thresholds.
+- **LogMemoryUsage**: Method Decorator - Tracks and logs memory usage, aiding in efficient resource management.
+- **LogMethodError**: Method Decorator - Handles and logs method errors, with an option to rethrow them.
+- **MemoryLeakWarning**: Class Decorator - Monitors and warns of potential memory leaks, supporting both Node.js and browsers. Options include setting check intervals, memory usage thresholds, custom logging, and manual garbage collection in Node.js.
 
 ## 📦 Installation
 
-Jumpstart your performance monitoring by installing the package:
+Easily integrate into your project:
 
 ```bash
 npm install performance-decorators
@@ -21,80 +22,94 @@ npm install performance-decorators
 
 ### Log Execution Time
 
-Logs the execution time of a method. If a custom handler is provided, it will be used for logging.
-
 ```typescript
-import { LogExecutionTime } from 'performance-decorators';
+import { LogExecutionTime } from "performance-decorators";
 
 class PerformanceExample {
-    @LogExecutionTime()
-    quickMethod() {
-        // Method logic...
-    }
+  @LogExecutionTime()
+  quickMethod() {
+    // Simulated task
+  }
 
-    @LogExecutionTime((time, method) => console.log(`${method} took ${time} ms`))
-    detailedMethod() {
-        // Method logic...
-    }
+  @LogExecutionTime((time, method) => console.log(`${method} took ${time} ms`))
+  detailedMethod() {
+    // More complex task
+  }
 }
 ```
 
 ### Warn Performance Threshold
 
-Issues a warning if a method's execution time exceeds the specified threshold (default 100ms). A custom handler can be provided for personalized handling.
-
 ```typescript
-import { WarnPerformanceThreshold } from 'performance-decorators';
+import { WarnPerformanceThreshold } from "performance-decorators";
 
 class PerformanceExample {
-    @WarnPerformanceThreshold()
-    methodWithDefaultThreshold() {
-        // Method logic...
-    }
+  @WarnPerformanceThreshold()
+  methodWithDefaultThreshold() {
+    // Task to be monitored
+  }
 
-    @WarnPerformanceThreshold(200, (time, method) => console.warn(`${method} exceeded ${time} ms`))
-    methodWithCustomThreshold() {
-        // Method logic...
-    }
+  @WarnPerformanceThreshold(200, (time, method) =>
+    console.warn(`${method} exceeded ${time} ms`)
+  )
+  methodWithCustomThreshold() {
+    // Another monitored task
+  }
 }
 ```
 
 ### Log Memory Usage
 
-Logs memory usage before and after method execution. A custom handler can be used for tailored logging.
-
 ```typescript
-import { LogMemoryUsage } from 'performance-decorators';
+import { LogMemoryUsage } from "performance-decorators";
 
 class PerformanceExample {
-    @LogMemoryUsage()
-    standardMemoryMethod() {
-        // Method logic...
-    }
+  @LogMemoryUsage()
+  standardMemoryMethod() {
+    // Memory consuming task
+  }
 
-    @LogMemoryUsage((usedMemory, method) => console.log(`${method} used ${usedMemory} bytes`))
-    detailedMemoryMethod() {
-        // Method logic...
-    }
+  @LogMemoryUsage((usedMemory, method) =>
+    console.log(`${method} used ${usedMemory} bytes`)
+  )
+  detailedMemoryMethod() {
+    // Task with detailed memory monitoring
+  }
 }
 ```
 
 ### Log Method Error
 
-Logs errors occurring during method execution. If `rethrow` is true, the error is rethrown. A custom handler can be provided for specific error handling.
-
 ```typescript
-import { LogMethodError } from 'performance-decorators';
+import { LogMethodError } from "performance-decorators";
 
 class PerformanceExample {
-    @LogMethodError()
-    methodWithError() {
-        throw new Error('Example error');
-    }
+  @LogMethodError()
+  methodWithError() {
+    throw new Error("Example error");
+  }
 
-    @LogMethodError(true, (error, method) => console.error(`${method} error: ${error.message}`))
-    methodWithCustomErrorHandling() {
-        throw new Error('Custom error');
-    }
+  @LogMethodError(true, (error, method) =>
+    console.error(`${method} error: ${error.message}`)
+  )
+  methodWithCustomErrorHandling() {
+    throw new Error("Custom error");
+  }
 }
 ```
+
+### Memory Leak Warning
+
+```typescript
+import MemoryLeakWarning from 'performance-decorators';
+
+@MemoryLeakWarning({ checkIntervalMs: 30000, thresholdPercent: 20, logger: console.warn, enableManualGC: false })
+class MyMonitoredClass {
+    // Your class implementation
+}
+
+// Create an instance
+const instance = new MyMonitoredClass();
+```
+
+In this setup, `MyMonitoredClass` is monitored for memory usage every 30 seconds, with warnings logged for usage increases beyond 20%. Manual garbage collection is disabled by default.
