@@ -101,9 +101,9 @@ class PerformanceExample {
 ### Memory Leak Warning
 
 ```typescript
-import MemoryLeakWarning from 'performance-decorators';
+import { MemoryLeakWarning } from "performance-decorators";
 
-@MemoryLeakWarning({ checkIntervalMs: 30000, thresholdPercent: 20, logger: console.warn, enableManualGC: false })
+@MemoryLeakWarning(30000, 20, console.warn, false)
 class MyMonitoredClass {
     // Your class implementation
 }
@@ -112,4 +112,22 @@ class MyMonitoredClass {
 const instance = new MyMonitoredClass();
 ```
 
-In this setup, `MyMonitoredClass` is monitored for memory usage every 30 seconds, with warnings logged for usage increases beyond 20%. Manual garbage collection is disabled by default.
+### Detailed Usage Notes
+
+- **LogExecutionTime**: Can be customized with a handler to log the execution time in a specific format.
+- **WarnPerformanceThreshold**: Use this to get alerts when a method's execution time exceeds a certain threshold.
+- **LogMemoryUsage**: Useful for monitoring how much memory specific methods are using. Can be paired with custom handlers for detailed logging.
+- **LogMethodError**: This decorator helps in robust error handling by logging errors and optionally rethrowing them.
+- **MemoryLeakWarning**: Set this decorator on a class to continuously monitor its memory usage and get warned about potential leaks.
+
+## 📘 API Documentation
+
+Refer to the TypeScript JSDoc comments in the source code for detailed API information. Each decorator is well-documented, providing insights into its usage and configuration.
+
+## 🚧 Contributing
+
+Contributions are welcome! Please refer to the project's style and contribution guidelines for submitting patches and additions. Ensure to follow best practices and add tests for new features.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
