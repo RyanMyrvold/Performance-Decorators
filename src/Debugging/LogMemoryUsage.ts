@@ -26,7 +26,7 @@ function LogMemoryUsage(
 
       if (memoryBefore === undefined) {
         console.error(
-          "🐞 [LogMemoryUsage] Memory measurement is not supported in this environment."
+          "🐞 [Memory Usage] Memory measurement is not supported in this environment."
         );
 
         return originalMethod.apply(this, args);
@@ -38,7 +38,7 @@ function LogMemoryUsage(
 
       if (memoryAfter === undefined) {
         console.error(
-          "🐞 [LogMemoryUsage] Memory measurement is not supported in this environment."
+          "🐞 [Memory Usage] Memory measurement is not supported in this environment."
         );
 
         return result;
