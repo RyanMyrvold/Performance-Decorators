@@ -46,7 +46,7 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 
 Please review the following items and ensure your pull request meets these guidelines:
 
-- [ ] I have followed the [style guidelines](<link-to-style-guide>) of this project.
+- [ ] I have followed the [style guidelines](https://github.com/RyanMyrvold/Performance-Decorators/blob/main/CONTRIBUTING.md) of this project.
 - [ ] I have performed a self-review of my code.
 - [ ] I have commented on my code, particularly in hard-to-understand areas.
 - [ ] I have made corresponding changes to the documentation.
