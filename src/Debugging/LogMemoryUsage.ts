@@ -1,4 +1,5 @@
-import { getMemoryUsage } from "./Utilities";
+import { getMemoryUsage } from "../utilities/MemoryUtilities";
+
 
 /**
  * Decorator to log the memory usage before and after the method execution. It uses process.memoryUsage()

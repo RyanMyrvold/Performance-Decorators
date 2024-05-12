@@ -40,7 +40,7 @@ function LogMethodError(
     descriptor: TypedPropertyDescriptor<any>
   ) {
     if (typeof descriptor.value !== "function") {
-      throw new Error("🐞 [LogMethodError] Can only be applied to methods.");
+      throw new Error("🐞 [Error] Can only be applied to methods.");
     }
 
     const originalMethod = descriptor.value;

@@ -48,22 +48,9 @@ export function calculateTimeInMilliseconds(
 ): number {
   if (isNodeEnvironment()) {
     // Both start and end are bigint in Node.js
-    return Number(BigInt(end) - BigInt(start)) / 1_000_000; // Convert start and end to bigint
+    return Number(BigInt(end) - BigInt(start)) / 1_000_000;
   } else {
     // Both start and end are numbers in browsers
     return (end as number) - (start as number);
   }
-}
-
-/**
- * Gets the memory usage based on the environment.
- * @returns The current memory usage in bytes, or undefined if not supported.
- */
-export function getMemoryUsage(): number | undefined {
-  if (isNodeEnvironment()) {
-    return process.memoryUsage().heapUsed;
-  } else if (isBrowserEnvironment()) {
-    return performance.memory?.usedJSHeapSize;
-  }
-  return undefined;
 }

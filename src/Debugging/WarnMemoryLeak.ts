@@ -1,4 +1,4 @@
-import { getMemoryUsage } from "./Utilities";
+import { getMemoryUsage } from "../utilities/MemoryUtilities";
 
 /**
  * Class decorator to monitor and warn about potential memory leaks.
@@ -43,7 +43,7 @@ function WarnMemoryLeak(
           // Trigger warning if memory usage exceeds the threshold
           if (increase > thresholdPercent) {
             logger(
-              `⚠️ [Memory Leak Warning] Memory usage increased by ${increase.toFixed(
+              `⚠️ [Memory Leak] Memory usage increased by ${increase.toFixed(
                 2
               )}% in ${className}, indicating a potential memory leak.`
             );

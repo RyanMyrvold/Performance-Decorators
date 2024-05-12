@@ -48,13 +48,13 @@ function WarnPerformanceThreshold(
         executionTime = end - Number(start);
       } else {
         console.error(
-          "🐞 [WarnPerformanceThreshold] Performance timing not supported in this environment."
+          "🐞 [Performance] Performance timing not supported in this environment."
         );
         return result;
       }
 
       if (executionTime > threshold) {
-        const warningMessage = `⚠️ [Performance Warning] ${
+        const warningMessage = `⚠️ [Performance] ${
           target.constructor.name
         }.${String(propertyKey)} exceeded threshold of ${threshold} ms`;
         console.warn(warningMessage);

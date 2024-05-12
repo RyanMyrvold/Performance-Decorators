@@ -1,7 +1,5 @@
-import {
-  getHighResolutionTime,
-  calculateTimeInMilliseconds,
-} from "./Utilities";
+import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities/TimeUtilities";
+
 
 /**
  * Decorator to log the execution time of a method. It uses high-resolution time in Node.js
@@ -18,7 +16,7 @@ function LogExecutionTime(
     descriptor: TypedPropertyDescriptor<any>
   ) {
     if (typeof descriptor.value !== "function") {
-      throw new Error("🐞 [LogExecutionTime] Can only be applied to methods.");
+      throw new Error("🐞 [Execution Time] Can only be applied to methods.");
     }
 
     const originalMethod = descriptor.value;
