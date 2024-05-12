@@ -9,6 +9,7 @@ Here's a comprehensive pull request template to streamline contributions and ens
 Please include a clear and concise description of what the pull request does. Explain the problem this pull request is solving or the feature it adds to the project. Link any relevant issues or previous discussions here.
 
 **Example:**
+
 ```
 Fixes # (issue)
 
@@ -31,6 +32,7 @@ Please delete options that are not relevant.
 Please describe the tests that you ran to verify your changes. Provide instructions so reviewers can reproduce the tests. Please also list any relevant details for your test configuration.
 
 **Example:**
+
 ```
 - Ran the test suite with `npm test`.
 - Added new unit tests for the LazyLoad decorator.
@@ -64,6 +66,7 @@ Optional. You can add diagrams or screenshots to help explain your pull request'
 If you have something else you would like to add about the pull request, put that here.
 
 **Example:**
+
 ```
 - This feature significantly improves the initial load time of web applications by lazy-loading heavy computations.
 - Looking forward to feedback on the retry strategy implemented in the AutoRetry decorator.
