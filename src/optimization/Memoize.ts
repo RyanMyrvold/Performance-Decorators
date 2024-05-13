@@ -1,4 +1,3 @@
-import { serializeArguments } from "../utilities/FunctionUtilities";
 
 /**
  * Method decorator to cache results of expensive function calls based on arguments.
@@ -12,25 +11,25 @@ function Memoize(): MethodDecorator {
     propertyKey: string | symbol,
     descriptor: TypedPropertyDescriptor<any>
   ) {
-    // Validate that this decorator is applied to a method
-    if (typeof descriptor.value !== "function") {
-      throw new Error(
-        "🐞 [Memoize] Can only be applied to method declarations."
-      );
+    if (typeof descriptor.value !== 'function') {
+      throw new Error("🐞 [Memoize] Can only be applied to method declarations.");
     }
 
     const originalMethod = descriptor.value;
-    const cache = new Map<string, any>();
+    const cacheSymbol = Symbol(`Memoize Cache: ${String(propertyKey)}`);
 
     descriptor.value = function (...args: any[]) {
-      // Serialize arguments to use as a cache key
-      const cacheKey = serializeArguments(args);
+      if (!(this as any)[cacheSymbol]) {
+        (this as any)[cacheSymbol] = new Map();
+      }
+
+      const cache = (this as any)[cacheSymbol];
+      const cacheKey = JSON.stringify(args);
 
       if (cache.has(cacheKey)) {
         return cache.get(cacheKey);
       }
 
-      // Compute the result and cache it
       const result = originalMethod.apply(this, args);
       cache.set(cacheKey, result);
       return result;

@@ -6,47 +6,54 @@
  *
  * @returns PropertyDecorator
  */
+// src/decorators/LazyLoad.ts
+// src/decorators/LazyLoad.ts
+
+// src/decorators/LazyLoad.ts
+// src/decorators/LazyLoad.ts
 function LazyLoad(): PropertyDecorator {
   return function (target: Object, propertyKey: string | symbol) {
-    const originalDescriptor = Object.getOwnPropertyDescriptor(
-      target,
-      propertyKey
-    );
+    const initialValueSymbol = Symbol(`LazyLoad Initial Value: ${String(propertyKey)}`);
+    let initialized = false;
 
-    // If there's no descriptor, the property might not be correctly defined or might be a method.
-    if (!originalDescriptor) {
-      throw new Error(
-        `🐞 [Lazy Load] Failed to find a property descriptor for ${String(
-          propertyKey
-        )}. Ensure LazyLoad is applied to a proper class property.`
-      );
+    const originalDescriptor = Object.getOwnPropertyDescriptor(target, propertyKey) || {};
+    const { enumerable = true, configurable = true } = originalDescriptor;
+
+    if (originalDescriptor.value) {
+      (target as any)[initialValueSymbol] = originalDescriptor.value;
     }
 
-    let _value: any;
-    let _initialized = false;
+    const descriptor: PropertyDescriptor = {
+      enumerable,
+      configurable,
 
-    const newDescriptor: PropertyDescriptor = {
       get() {
-        if (!_initialized) {
-          // Initialize the value only if accessed to simulate lazy behavior
-          _value = originalDescriptor.value;
-          console.log(
-            `🐞 [Lazy Load] Lazily initializing property ${String(propertyKey)}.`
-          );
-          _initialized = true;
+        if (!initialized) {
+          const value = (this as any)[initialValueSymbol];
+          Object.defineProperty(this, propertyKey, {
+            value,
+            writable: true,
+            enumerable,
+            configurable
+          });
+          initialized = true;
+          console.log(`🐞 [Lazy Load] Initializing property ${String(propertyKey)}.`);
         }
-        return _value;
+        return this[propertyKey as keyof PropertyDescriptor]; // Explicitly type propertyKey as keyof PropertyDescriptor.
       },
-      set(newValue: any) {
-        console.log(`🐞 [Lazy Load] Setting value for ${String(propertyKey)}.`);
-        _value = newValue;
-        _initialized = true;
-      },
-      enumerable: originalDescriptor.enumerable ?? true,
-      configurable: originalDescriptor.configurable ?? true,
+
+      set(newValue) {
+        Object.defineProperty(this, propertyKey, {
+            value: newValue,
+            writable: true,
+            enumerable,
+            configurable
+        });
+        initialized = true;
+      }
     };
 
-    Object.defineProperty(target, propertyKey, newDescriptor);
+    Object.defineProperty(target, propertyKey, descriptor);
   };
 }
 

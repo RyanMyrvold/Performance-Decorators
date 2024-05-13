@@ -1,12 +1,12 @@
 /**
  * Method decorator to debounce a method call, ensuring that the function is not called more than once
- * within the specified delay. This is particularly useful for rate-limiting execution of handlers on
- * events that will trigger frequently, such as window resize, scroll, or key press events in web applications.
+ * within the specified delay. This is suitable for rate-limiting execution of handlers on
+ * events that trigger very frequently such as window resize, scroll, or key press events in web applications.
  *
- * This version of debounce is enhanced to handle both synchronous and asynchronous methods uniformly and includes
- * comprehensive error handling to provide clear diagnostic messages.
+ * This version of debounce is designed to handle both synchronous and asynchronous methods uniformly and includes
+ * comprehensive error handling to provide clear diagnostics.
  *
- * @param delay The number of milliseconds to delay; if zero or unspecified, no debouncing will occur.
+ * @param delay The number of milliseconds to delay; if zero or unspecified, a default of 300ms is used. The delay cannot be negative.
  * @returns MethodDecorator
  */
 function Debounce(delay: number = 300): MethodDecorator {
@@ -19,7 +19,6 @@ function Debounce(delay: number = 300): MethodDecorator {
         propertyKey: string | symbol,
         descriptor: TypedPropertyDescriptor<any>
     ) {
-        // Validate that this decorator is used on a method
         if (typeof descriptor.value !== "function") {
             throw new Error("🐞 [Debounce] Can only be applied to method declarations.");
         }
@@ -29,19 +28,22 @@ function Debounce(delay: number = 300): MethodDecorator {
         let lastResult: any;
 
         descriptor.value = function (...args: any[]) {
-            // Clear the timeout set by the previous call
-            clearTimeout(timeoutId as NodeJS.Timeout);
-
-            // Promise wrapper to handle both async and sync methods uniformly
-            const promiseExecutor = (
+            // Documents handling different modes based on method's nature (sync/async).
+            let promiseExecutor = (
                 resolve: (value?: any) => void,
                 reject: (reason?: any) => void
-            ) => {
+            ): void => {
+                clearTimeout(timeoutId as NodeJS.Timeout);
+                
                 timeoutId = setTimeout(() => {
                     try {
-                        // Apply the original method in the correct context
-                        lastResult = originalMethod.apply(this, args);
-                        resolve(lastResult);
+                        // Invoke the original method and resolve or reject based on outcome.
+                        const result = originalMethod.apply(this, args);
+                        if (result instanceof Promise) {
+                            result.then(resolve).catch(reject);
+                        } else {
+                            resolve(result);
+                        }
                     } catch (error) {
                         reject(error);
                         console.error(`🚨 [Debounce] Error in method ${String(propertyKey)}: ${error}`);
@@ -49,21 +51,8 @@ function Debounce(delay: number = 300): MethodDecorator {
                 }, delay);
             };
 
-            // Check if the original method is async
-            if (originalMethod.constructor.name === "AsyncFunction") {
-                return new Promise(promiseExecutor);
-            } else {
-                // Execute the method synchronously after the delay
-                promiseExecutor(
-                    (result) => {
-                        lastResult = result;
-                    },
-                    (error) => {
-                        throw error;
-                    }
-                );
-                return lastResult;
-            }
+            // Returns a new promise that will resolve or reject following the debounced invocation.
+            return new Promise(promiseExecutor);
         };
 
         return descriptor;

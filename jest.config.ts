@@ -7,6 +7,7 @@ const config: Config.InitialOptions = {
     '^.+\\.tsx?$': ['ts-jest', {tsconfig: 'tsconfig.json'}]
   },
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
+  testEnvironment: 'node',
   moduleFileExtensions: [
     'ts',
     'tsx',
