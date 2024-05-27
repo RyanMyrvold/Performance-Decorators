@@ -26,19 +26,17 @@ function BatchOperations(): MethodDecorator {
 
       if (!scheduled) {
         scheduled = true;
-        Promise.resolve()
-          .then(() => {
-            originalMethod.apply(this, [calls.flat()]);
-            scheduled = false;
-            calls = [];
-          })
-          .catch((error) => {
-            console.error(
-              `🚨 [Batch Operations] Failed to execute batched operations for ${String(
-                propertyKey
-              )}: ${error}`
-            );
-          });
+        Promise.resolve().then(() => {
+          originalMethod.apply(this, [calls.flat()]);
+          scheduled = false;
+          calls = [];
+        }).catch((error) => {
+          console.error(
+            `🚨 [Batch Operations] Failed to execute batched operations for ${String(
+              propertyKey
+            )}: ${error}`
+          );
+        });
       }
     };
 

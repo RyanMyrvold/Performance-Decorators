@@ -1,8 +1,6 @@
 import Memoize from "../../src/optimization/Memoize";
 
-
 describe('Memoize Decorator', () => {
-  // A class to apply Memoize to its methods
   class TestClass {
     callCount = 0;
 
@@ -20,28 +18,20 @@ describe('Memoize Decorator', () => {
   });
 
   test('should cache the result for repeated arguments', () => {
-    // Call the method with the same arguments twice
     const firstResult = instance.computeExpensiveResult(3, 4);
     const secondResult = instance.computeExpensiveResult(3, 4);
 
-    // Expect the result to be the same
     expect(firstResult).toBe(7);
     expect(secondResult).toBe(7);
-
-    // Expect the method to be called only once since the second call should be cached
     expect(instance.callCount).toBe(1);
   });
 
   test('should compute the result again for different arguments', () => {
-    // Call the method with different arguments
     const resultA = instance.computeExpensiveResult(3, 4);
     const resultB = instance.computeExpensiveResult(5, 6);
 
-    // Expect the results to be correct
     expect(resultA).toBe(7);
     expect(resultB).toBe(11);
-
-    // Expect the method to be called twice, once for each set of arguments
     expect(instance.callCount).toBe(2);
   });
 
@@ -49,16 +39,136 @@ describe('Memoize Decorator', () => {
     const instanceA = new TestClass();
     const instanceB = new TestClass();
 
-    // Call the method on both instances
     const resultA = instanceA.computeExpensiveResult(3, 4);
     const resultB = instanceB.computeExpensiveResult(3, 4);
 
-    // Expect the results to be the same
     expect(resultA).toBe(7);
     expect(resultB).toBe(7);
-
-    // Expect each instance to have its own call count
     expect(instanceA.callCount).toBe(1);
     expect(instanceB.callCount).toBe(1);
+  });
+
+  it('should memoize method calls', () => {
+    const memoizedFunction = jest.fn();
+
+    class TestClass {
+      @Memoize()
+      memoizeMethod() {
+        memoizedFunction();
+      }
+    }
+
+    const instance = new TestClass();
+    instance.memoizeMethod();
+    instance.memoizeMethod();
+    instance.memoizeMethod();
+
+    expect(memoizedFunction).toHaveBeenCalledTimes(1);
+  });
+
+  it('should memoize method calls with arguments', () => {
+    const memoizedFunction = jest.fn();
+
+    class TestClass {
+      @Memoize()
+      memoizeMethod(a: number, b: number) {
+        memoizedFunction(a, b);
+        return a + b;
+      }
+    }
+
+    const instance = new TestClass();
+    instance.memoizeMethod(3, 4);
+    instance.memoizeMethod(3, 4);
+    instance.memoizeMethod(3, 4);
+
+    expect(memoizedFunction).toHaveBeenCalledTimes(1);
+  });
+
+  it('should memoize method calls with different arguments', () => {
+    const memoizedFunction = jest.fn();
+
+    class TestClass {
+      @Memoize()
+      memoizeMethod(a: number, b: number) {
+        memoizedFunction(a, b);
+        return a + b;
+      }
+    }
+
+    const instance = new TestClass();
+    instance.memoizeMethod(3, 4);
+    instance.memoizeMethod(5, 6);
+    instance.memoizeMethod(7, 8);
+
+    expect(memoizedFunction).toHaveBeenCalledTimes(3);
+  });
+
+  it('should memoize method calls with different arguments in different orders', () => {
+    const memoizedFunction = jest.fn();
+
+    class TestClass {
+      @Memoize()
+      memoizeMethod(a: number, b: number) {
+        memoizedFunction(a, b);
+        return a + b;
+      }
+    }
+
+    const instance = new TestClass();
+    instance.memoizeMethod(3, 4);
+    instance.memoizeMethod(5, 6);
+    instance.memoizeMethod(3, 4);
+
+    expect(memoizedFunction).toHaveBeenCalledTimes(2);
+  });
+
+  it('should memoize method calls with different arguments in different orders with multiple calls', () => {
+    const memoizedFunction = jest.fn();
+
+    class TestClass {
+      @Memoize()
+      memoizeMethod(a: number, b: number) {
+        memoizedFunction(a, b);
+        return a + b;
+      }
+    }
+
+    const instance = new TestClass();
+    instance.memoizeMethod(3, 4);
+    instance.memoizeMethod(5, 6);
+    instance.memoizeMethod(7, 8);
+    instance.memoizeMethod(3, 4);
+
+    expect(memoizedFunction).toHaveBeenCalledTimes(3);
+  });
+
+  it('should memoize method calls with different arguments in different orders with multiple calls and multiple items', () => {
+    const memoizedFunction = jest.fn();
+
+    class TestClass {
+      @Memoize()
+      memoizeMethod(a: number, b: number) {
+        memoizedFunction(a, b);
+        return a + b;
+      }
+    }
+
+    const instance = new TestClass();
+    instance.memoizeMethod(3, 4); // Call 1: [3, 4]
+    instance.memoizeMethod(5, 6); // Call 2: [5, 6]
+    instance.memoizeMethod(7, 8); // Call 3: [7, 8]
+    instance.memoizeMethod(3, 4); // Cached
+    instance.memoizeMethod(5, 6); // Cached
+    instance.memoizeMethod(7, 8); // Cached
+    instance.memoizeMethod(3, 4); // Cached again
+
+    console.log('🐞 [Test] Expected call count: 3');
+    console.log('🐞 [Test] Actual call count:', memoizedFunction.mock.calls.length);
+    memoizedFunction.mock.calls.forEach((call, index) => {
+      console.log(`🐞 [Test] Call ${index + 1}:`, call);
+    });
+
+    expect(memoizedFunction).toHaveBeenCalledTimes(3);
   });
 });

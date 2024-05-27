@@ -27,11 +27,13 @@ function Memoize(): MethodDecorator {
       const cacheKey = JSON.stringify(args);
 
       if (cache.has(cacheKey)) {
+        console.log(`🐞 [Memoize] Cache hit for key: ${cacheKey}`);
         return cache.get(cacheKey);
       }
 
       const result = originalMethod.apply(this, args);
       cache.set(cacheKey, result);
+      console.log(`🐞 [Memoize] Cache miss for key: ${cacheKey}, caching result: ${result}`);
       return result;
     };
 
@@ -40,3 +42,4 @@ function Memoize(): MethodDecorator {
 }
 
 export default Memoize;
+

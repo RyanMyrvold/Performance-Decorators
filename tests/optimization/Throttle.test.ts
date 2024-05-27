@@ -47,6 +47,18 @@ describe('Throttle Decorator', () => {
         @Throttle(-100)
         invalidMethod(): void {}
       }
-    }).toThrowError("🚨 [Throttle] Delay must be non-negative.");
+    }).toThrow("🚨 [Throttle] Delay must be non-negative.");
+  });
+
+
+  it('should throw an error for non-method declarations', () => {
+    expect(() => {
+      class InvalidTestClass {
+        @Throttle()
+        get invalidProperty(): void {
+          return;
+        }
+      }
+    }).toThrow("🐞 [Throttle] Can only be applied to method declarations.");
   });
 });

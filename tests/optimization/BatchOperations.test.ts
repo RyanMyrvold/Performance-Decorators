@@ -1,74 +1,238 @@
-import BatchOperations from "../../src/optimization/BatchOperations";
+import { BatchOperations } from "../../src/optimization";
 
+describe("BatchOperations Decorator", () => {
+  it("should batch operations", async () => {
+    const applyBatchChanges = jest.fn();
 
-class Renderer {
-  public batchedChanges: any[][] = [];
+    class TestClass {
+      @BatchOperations()
+      batchMethod(changes: any[]) {
+        applyBatchChanges(changes);
+      }
+    }
 
-  @BatchOperations()
-  render(changes: any[]) {
-    this.batchedChanges.push(changes);  // Store the batched changes for verification
-  }
-}
+    const instance = new TestClass();
+    instance.batchMethod([{ item: 1 }]);
+    instance.batchMethod([{ item: 2 }]);
 
-describe('BatchOperations Decorator', () => {
-  let renderer: Renderer;
-
-  beforeEach(() => {
-    renderer = new Renderer();
-  });
-
-  it('should batch multiple calls into a single operation', async () => {
-    // Simulate rapid consecutive calls
-    renderer.render([{ item: 'item1' }]);
-    renderer.render([{ item: 'item2' }]);
-    renderer.render([{ item: 'item3' }]);
-
-    // Ensure the microtask queue is flushed
+    // Wait for the microtask queue to flush
     await new Promise(process.nextTick);
 
-    // There should be one batched call with all changes
-    expect(renderer.batchedChanges.length).toBe(1);
-    expect(renderer.batchedChanges[0]).toEqual([
-      [{ item: 'item1' }],
-      [{ item: 'item2' }],
-      [{ item: 'item3' }]
+    expect(applyBatchChanges).toHaveBeenCalledTimes(1);
+    expect(applyBatchChanges).toHaveBeenCalledWith([
+      [{ item: 1 }],
+      [{ item: 2 }],
     ]);
   });
 
-  it('should process separate batches of operations separately', async () => {
-    // First batch of operations
-    renderer.render([{ item: 'item1' }]);
-    renderer.render([{ item: 'item2' }]);
+  it("should batch operations with multiple calls", async () => {
+    const applyBatchChanges = jest.fn();
 
-    // Flush the microtask queue to process the first batch
+    class TestClass {
+      @BatchOperations()
+      batchMethod(changes: any[]) {
+        applyBatchChanges(changes);
+      }
+    }
+
+    const instance = new TestClass();
+    instance.batchMethod([{ item: 1 }]);
+    instance.batchMethod([{ item: 2 }]);
+    instance.batchMethod([{ item: 3 }]);
+
+    // Wait for the microtask queue to flush
     await new Promise(process.nextTick);
 
-    // Second batch of operations
-    renderer.render([{ item: 'item3' }]);
-    renderer.render([{ item: 'item4' }]);
-
-    // Flush the microtask queue again to process the second batch
-    await new Promise(process.nextTick);
-
-    // Check that we have two separate batched calls
-    expect(renderer.batchedChanges.length).toBe(2);
-    expect(renderer.batchedChanges[0]).toEqual([
-      [{ item: 'item1' }],
-      [{ item: 'item2' }]
-    ]);
-    expect(renderer.batchedChanges[1]).toEqual([
-      [{ item: 'item3' }],
-      [{ item: 'item4' }]
+    expect(applyBatchChanges).toHaveBeenCalledTimes(1);
+    expect(applyBatchChanges).toHaveBeenCalledWith([
+      [{ item: 1 }],
+      [{ item: 2 }],
+      [{ item: 3 }],
     ]);
   });
 
-  it('should handle empty batches correctly', async () => {
-    // No operations are called
+  it("should batch operations with multiple calls and multiple items", async () => {
+    const applyBatchChanges = jest.fn();
 
-    // Flush the microtask queue
+    class TestClass {
+      @BatchOperations()
+      batchMethod(changes: any[]) {
+        applyBatchChanges(changes);
+      }
+    }
+
+    const instance = new TestClass();
+    instance.batchMethod([{ item: 1 }, { item: 2 }]);
+    instance.batchMethod([{ item: 3 }, { item: 4 }]);
+    instance.batchMethod([{ item: 5 }, { item: 6 }]);
+
+    // Wait for the microtask queue to flush
     await new Promise(process.nextTick);
 
-    // No batched changes should be recorded
-    expect(renderer.batchedChanges.length).toBe(0);
+    expect(applyBatchChanges).toHaveBeenCalledTimes(1);
+    expect(applyBatchChanges).toHaveBeenCalledWith([
+      [{ item: 1 }, { item: 2 }],
+      [{ item: 3 }, { item: 4 }],
+      [{ item: 5 }, { item: 6 }],
+    ]);
+  });
+
+  it("should batch operations with multiple calls and multiple items in different orders", async () => {
+    const applyBatchChanges = jest.fn();
+
+    class TestClass {
+      @BatchOperations()
+      batchMethod(changes: any[]) {
+        applyBatchChanges(changes);
+      }
+    }
+
+    const instance = new TestClass();
+    instance.batchMethod([{ item: 1 }, { item: 2 }]);
+    instance.batchMethod([{ item: 5 }, { item: 6 }]);
+    instance.batchMethod([{ item: 3 }, { item: 4 }]);
+
+    // Wait for the microtask queue to flush
+    await new Promise(process.nextTick);
+
+    expect(applyBatchChanges).toHaveBeenCalledTimes(1);
+    expect(applyBatchChanges).toHaveBeenCalledWith([
+      [{ item: 1 }, { item: 2 }],
+      [{ item: 5 }, { item: 6 }],
+      [{ item: 3 }, { item: 4 }],
+    ]);
+  });
+
+  it("should batch operations with multiple calls and multiple items in different orders with multiple batches", async () => {
+    const applyBatchChanges = jest.fn();
+
+    class TestClass {
+      @BatchOperations()
+      batchMethod(args: any[]) {
+        applyBatchChanges(args);
+      }
+    }
+
+    const instance = new TestClass();
+
+    // Perform multiple calls with different orders and items
+    instance.batchMethod([{ item: 1 }, { item: 2 }]);
+    instance.batchMethod([{ item: 5 }, { item: 6 }]);
+    instance.batchMethod([{ item: 3 }, { item: 4 }]);
+
+    await new Promise(process.nextTick);
+
+    instance.batchMethod([{ item: 7 }, { item: 8 }]);
+
+    await new Promise(process.nextTick);
+
+    expect(applyBatchChanges).toHaveBeenCalledTimes(2);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(1, [
+      [{ item: 1 }, { item: 2 }],
+      [{ item: 5 }, { item: 6 }],
+      [{ item: 3 }, { item: 4 }],
+    ]);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(2, [
+      [{ item: 7 }, { item: 8 }],
+    ]);
+  });
+
+  it("should batch operations with multiple calls and multiple items in different orders with multiple batches and additional calls", async () => {
+    const applyBatchChanges = jest.fn();
+
+    class TestClass {
+      @BatchOperations()
+      batchMethod(args: any[]) {
+        applyBatchChanges(args);
+      }
+    }
+
+    const instance = new TestClass();
+
+    // Perform multiple calls with different orders and items
+    instance.batchMethod([{ item: 1 }, { item: 2 }]);
+    instance.batchMethod([{ item: 5 }, { item: 6 }]);
+    instance.batchMethod([{ item: 3 }, { item: 4 }]);
+
+    await new Promise(process.nextTick);
+
+    instance.batchMethod([{ item: 7 }, { item: 8 }]);
+
+    await new Promise(process.nextTick);
+
+    instance.batchMethod([{ item: 9 }, { item: 10 }]);
+    instance.batchMethod([{ item: 11 }, { item: 12 }]);
+
+    await new Promise(process.nextTick);
+
+    expect(applyBatchChanges).toHaveBeenCalledTimes(3);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(1, [
+      [{ item: 1 }, { item: 2 }],
+      [{ item: 5 }, { item: 6 }],
+      [{ item: 3 }, { item: 4 }],
+    ]);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(2, [
+      [{ item: 7 }, { item: 8 }],
+    ]);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(3, [
+      [{ item: 9 }, { item: 10 }],
+      [{ item: 11 }, { item: 12 }],
+    ]);
+  });
+
+  it("should batch operations with multiple calls and multiple items in different orders with multiple batches and additional calls in reverse order", async () => {
+    const applyBatchChanges = jest.fn();
+
+    class TestClass {
+      @BatchOperations()
+      batchMethod(args: any[]) {
+        applyBatchChanges(args);
+      }
+    }
+
+    const instance = new TestClass();
+
+    // Perform multiple calls with different orders and items
+    instance.batchMethod([{ item: 1 }, { item: 2 }]);
+    instance.batchMethod([{ item: 5 }, { item: 6 }]);
+    instance.batchMethod([{ item: 3 }, { item: 4 }]);
+
+    await new Promise(process.nextTick);
+
+    instance.batchMethod([{ item: 7 }, { item: 8 }]);
+
+    await new Promise(process.nextTick);
+
+    instance.batchMethod([{ item: 12 }, { item: 11 }]);
+    instance.batchMethod([{ item: 10 }, { item: 9 }]);
+
+    await new Promise(process.nextTick);
+
+    expect(applyBatchChanges).toHaveBeenCalledTimes(3);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(1, [
+      [{ item: 1 }, { item: 2 }],
+      [{ item: 5 }, { item: 6 }],
+      [{ item: 3 }, { item: 4 }],
+    ]);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(2, [
+      [{ item: 7 }, { item: 8 }],
+    ]);
+    expect(applyBatchChanges).toHaveBeenNthCalledWith(3, [
+      [{ item: 12 }, { item: 11 }],
+      [{ item: 10 }, { item: 9 }],
+    ]);
+  });
+
+  it("should throw an error for non-method declarations", () => {
+    expect(() => {
+      class InvalidTestClass {
+        @BatchOperations()
+        get invalidProperty(): void {
+          return;
+        }
+      }
+    }).toThrow(
+      "🐞 [Batch Operations] Can only be applied to method declarations."
+    );
   });
 });

@@ -1,6 +1,5 @@
 import AutoRetry from "../../src/optimization/AutoRetry";
 
-
 class TestClass {
   callCount = 0;
 
@@ -44,5 +43,43 @@ describe('AutoRetry Decorator', () => {
       expect(e.message).toBe("🚨 [Auto Retry] Failed after 3 retries: Error: Method failed");
       expect(testInstance.callCount).toBe(4); // It will be 4 because it attempts 4 times in total
     }
+  });
+
+  it('should throw an error for negative retries', () => {
+    expect(() => {
+      class InvalidTestClass {
+        @AutoRetry(-1, 10)
+        invalidMethod(): void {}
+      }
+    }).toThrow("🚨 [Auto Retry] Retries and delay must be non-negative.");
+  });
+
+  it('should throw an error for negative delay', () => {
+    expect(() => {
+      class InvalidTestClass {
+        @AutoRetry(3, -10)
+        invalidMethod(): void {}
+      }
+    }).toThrow("🚨 [Auto Retry] Retries and delay must be non-negative.");
+  });
+
+  it('should throw an error for non-method declarations', () => {
+    expect(() => {
+      class InvalidTestClass {
+        @AutoRetry(3, 10)
+        get invalidProperty(): void {
+          return;
+        }
+      }
+    }).toThrow("🚨 [Auto Retry] Can only be applied to methods.");
+  });
+
+  it('should throw an error for non-async methods', () => {
+    expect(() => {
+      class InvalidTestClass {
+        @AutoRetry(3, 10)
+        invalidMethod(): void {}
+      }
+    }).toThrow("🚨 [Auto Retry] Can only be applied to async methods.");
   });
 });
