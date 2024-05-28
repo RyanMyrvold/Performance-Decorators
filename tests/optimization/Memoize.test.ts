@@ -162,11 +162,8 @@ describe('Memoize Decorator', () => {
     instance.memoizeMethod(5, 6); // Cached
     instance.memoizeMethod(7, 8); // Cached
     instance.memoizeMethod(3, 4); // Cached again
-
-    console.log('🐞 [Test] Expected call count: 3');
-    console.log('🐞 [Test] Actual call count:', memoizedFunction.mock.calls.length);
     memoizedFunction.mock.calls.forEach((call, index) => {
-      console.log(`🐞 [Test] Call ${index + 1}:`, call);
+      console.log(`[Test] Call ${index + 1}:`, call);
     });
 
     expect(memoizedFunction).toHaveBeenCalledTimes(3);

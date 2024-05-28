@@ -46,16 +46,9 @@ function LogMemoryUsage(
 
       const memoryUsed = memoryAfter - memoryBefore;
 
-      console.log(
-        `🧠 [Memory Usage] ${target.constructor.name}.${String(
-          propertyKey
-        )}: Memory used=${memoryUsed} bytes`
-      );
+      console.log(`🧠 [Memory Usage] ${target.constructor.name}.${String(propertyKey)}: Memory used=${memoryUsed} bytes`);
 
-      memoryHandler?.(
-        memoryUsed,
-        `${target.constructor.name}.${String(propertyKey)}`
-      );
+      memoryHandler?.(memoryUsed,`${target.constructor.name}.${String(propertyKey)}`);
 
       return result;
     };

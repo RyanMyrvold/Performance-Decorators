@@ -16,9 +16,7 @@ function WarnPerformanceThreshold(
     descriptor: TypedPropertyDescriptor<any>
   ) {
     if (typeof descriptor.value !== "function") {
-      throw new Error(
-        "🐞 [WarnPerformanceThreshold] Can only be applied to methods."
-      );
+      throw new Error("🐞 [Performance Threshold] Can only be applied to methods.");
     }
 
     const originalMethod = descriptor.value;
@@ -47,21 +45,14 @@ function WarnPerformanceThreshold(
         end = performance.now();
         executionTime = end - Number(start);
       } else {
-        console.error(
-          "🐞 [Performance] Performance timing not supported in this environment."
-        );
+        console.error("🐞 [Performance] Performance timing not supported in this environment.");
         return result;
       }
 
       if (executionTime > threshold) {
-        const warningMessage = `⚠️ [Performance] ${
-          target.constructor.name
-        }.${String(propertyKey)} exceeded threshold of ${threshold} ms`;
+        const warningMessage = `⚠️ [Performance] ${target.constructor.name}.${String(propertyKey)} exceeded threshold of ${threshold} ms`;
         console.warn(warningMessage);
-        performanceHandler?.(
-          executionTime,
-          `${target.constructor.name}.${String(propertyKey)}`
-        );
+        performanceHandler?.(executionTime,`${target.constructor.name}.${String(propertyKey)}`);
       }
 
       return result;

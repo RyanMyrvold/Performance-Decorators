@@ -42,10 +42,7 @@ function WarnMemoryLeak(
 
           // Trigger warning if memory usage exceeds the threshold
           if (increase > thresholdPercent) {
-            logger(
-              `⚠️ [Memory Leak] Memory usage increased by ${increase.toFixed(
-                2
-              )}% in ${className}, indicating a potential memory leak.`
+            logger(`⚠️ [Memory Leak] Memory usage increased by ${increase.toFixed(2)}% in ${className}, indicating a potential memory leak.`
             );
           }
         }

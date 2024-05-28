@@ -19,11 +19,11 @@ function AutoRetry(retries: number = 3, delay: number = 500): MethodDecorator {
   ) {
     const originalMethod = descriptor.value;
     if (typeof originalMethod !== "function") {
-      throw new Error("🚨 [Auto Retry] Can only be applied to methods.");
+      throw new Error("🐞 [Auto Retry] Can only be applied to methods.");
     }
 
     if (!originalMethod.constructor.name.includes('AsyncFunction')) {
-      throw new Error("🚨 [Auto Retry] Can only be applied to async methods.");
+      throw new Error("🐞 [Auto Retry] Can only be applied to async methods.");
     }
 
     descriptor.value = async function (...args: any[]) {
@@ -34,7 +34,6 @@ function AutoRetry(retries: number = 3, delay: number = 500): MethodDecorator {
           return await originalMethod.apply(context, args);
         } catch (error) {
           if (attempt < retries) {
-            console.warn(`🚨 [Auto Retry] Attempt ${attempt + 1} for ${String(propertyKey)} failed: ${error}. Retrying after ${delay}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
             return retry(attempt + 1);
           } else {

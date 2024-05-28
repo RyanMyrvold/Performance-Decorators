@@ -17,18 +17,13 @@ function LogMethodError(
   function logError(error: any, methodName: string): Error {
     // Convert non-Error exceptions to Error instances
     const errorToLog =
-      error instanceof Error
-        ? error
-        : new Error(`Non-Error exception: ${error}`);
+      error instanceof Error ? error: new Error(`Non-Error exception: ${error}`);
 
     // Use custom error handler if provided, otherwise log to console
     if (errorHandler) {
       errorHandler(errorToLog, methodName);
     } else {
-      console.error(
-        `🚨 [Error] ${methodName} encountered an error:`,
-        errorToLog
-      );
+      console.error(`🚨 [Error] ${methodName} encountered an error:`,errorToLog);
     }
 
     return errorToLog;

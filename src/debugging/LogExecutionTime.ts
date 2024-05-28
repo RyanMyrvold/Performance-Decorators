@@ -36,14 +36,12 @@ function LogExecutionTime(
       const result = originalMethod.apply(this, args);
 
       try {
+        
         end = getHighResolutionTime();
 
         const executionTime = calculateTimeInMilliseconds(start, end);
 
-        handler?.(
-          executionTime,
-          `${target.constructor.name}.${String(propertyKey)}`
-        );
+        handler?.(executionTime,`${target.constructor.name}.${String(propertyKey)}`);
       } catch (error) {
         console.error(error);
       }

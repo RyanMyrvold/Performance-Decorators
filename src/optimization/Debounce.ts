@@ -11,7 +11,7 @@
  */
 function Debounce(delay: number = 300): MethodDecorator {
     if (delay < 0) {
-        throw new Error("🚨 [Debounce] Delay must be non-negative.");
+        throw new Error("🐞 [Debounce] Delay must be non-negative.");
     }
 
     return function (

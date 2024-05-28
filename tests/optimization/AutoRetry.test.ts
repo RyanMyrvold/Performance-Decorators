@@ -71,7 +71,7 @@ describe('AutoRetry Decorator', () => {
           return;
         }
       }
-    }).toThrow("🚨 [Auto Retry] Can only be applied to methods.");
+    }).toThrow("🐞 [Auto Retry] Can only be applied to methods.");
   });
 
   it('should throw an error for non-async methods', () => {
@@ -80,6 +80,6 @@ describe('AutoRetry Decorator', () => {
         @AutoRetry(3, 10)
         invalidMethod(): void {}
       }
-    }).toThrow("🚨 [Auto Retry] Can only be applied to async methods.");
+    }).toThrow("🐞 [Auto Retry] Can only be applied to async methods.");
   });
 });

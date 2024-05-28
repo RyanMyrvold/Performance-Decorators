@@ -1,28 +1,9 @@
-/**
- * Determines if the current runtime environment is Node.js based on the presence of process and hrtime.
- * @returns True if the current environment is Node.js, otherwise false.
- */
-export function isNodeEnvironment(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    typeof process.hrtime === "function" &&
-    typeof process.hrtime.bigint === "function"
-  );
-}
+import { isBrowserEnvironment, isNodeEnvironment } from "./SystemUtilities";
 
-/**
- * Determines if the current runtime environment is a browser based on the presence of the performance API.
- * @returns True if the current environment is a browser, otherwise false.
- */
-export function isBrowserEnvironment(): boolean {
-  return (
-    typeof performance !== "undefined" && typeof performance.now === "function"
-  );
-}
 
 /**
  * Gets the current high-resolution time based on the environment.
- * @returns The current high-resolution time in milliseconds.
+ * @returns The current high-resolution time in milliseconds or bigint.
  */
 export function getHighResolutionTime(): number | bigint {
   if (isNodeEnvironment()) {
@@ -30,9 +11,7 @@ export function getHighResolutionTime(): number | bigint {
   } else if (isBrowserEnvironment()) {
     return performance.now();
   } else {
-    throw new Error(
-      "High-resolution time is not supported in this environment."
-    );
+    throw new Error("High-resolution time is not supported in this environment.");
   }
 }
 
@@ -42,15 +21,12 @@ export function getHighResolutionTime(): number | bigint {
  * @param end The end time.
  * @returns The time difference in milliseconds.
  */
-export function calculateTimeInMilliseconds(
-  start: number | bigint,
-  end: number | bigint
-): number {
-  if (isNodeEnvironment()) {
-    // Both start and end are bigint in Node.js
-    return Number(BigInt(end) - BigInt(start)) / 1_000_000;
+export function calculateTimeInMilliseconds(start: number | bigint, end: number | bigint): number {
+  if (isNodeEnvironment() && typeof start === 'bigint' && typeof end === 'bigint') {
+    return Number(end - start) / 1000000;
+  } else if (isBrowserEnvironment() && typeof start === 'number' && typeof end === 'number') {
+    return end - start;
   } else {
-    // Both start and end are numbers in browsers
-    return (end as number) - (start as number);
+    throw new Error("Unsupported environment or types for time calculation.");
   }
 }

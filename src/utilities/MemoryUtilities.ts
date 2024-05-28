@@ -1,4 +1,5 @@
-import { isNodeEnvironment, isBrowserEnvironment } from "./TimeUtilities";
+import { isBrowserEnvironment, isNodeEnvironment } from "./SystemUtilities";
+
 
 /**
  * Gets the memory usage based on the environment.

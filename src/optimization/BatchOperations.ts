@@ -12,9 +12,7 @@ function BatchOperations(): MethodDecorator {
     descriptor: TypedPropertyDescriptor<any>
   ) {
     if (typeof descriptor.value !== "function") {
-      throw new Error(
-        "🐞 [Batch Operations] Can only be applied to method declarations."
-      );
+      throw new Error("🐞 [Batch Operations] Can only be applied to method declarations.");
     }
 
     const originalMethod = descriptor.value;
@@ -31,11 +29,7 @@ function BatchOperations(): MethodDecorator {
           scheduled = false;
           calls = [];
         }).catch((error) => {
-          console.error(
-            `🚨 [Batch Operations] Failed to execute batched operations for ${String(
-              propertyKey
-            )}: ${error}`
-          );
+          console.error(`🚨 [Batch Operations] Failed to execute batched operations for ${String(propertyKey)}: ${error}`);
         });
       }
     };
