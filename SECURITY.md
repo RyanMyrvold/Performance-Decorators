@@ -2,9 +2,9 @@
 
 **Overview**
 
-We take security very seriously at [your company name]. We are committed to protecting our users' data and our systems from attack.
+We take security very seriously. We are committed to protecting our users' data and our systems from attack.
 
-This document outlines our security policy and procedures. It is intended to inform our users of our security practices and to help them protect their own data.
+This document outlines our security policy and procedures. It is intended to inform our users of our security practices and to help them protect their data.
 
 **Scope**
 
@@ -21,9 +21,6 @@ We have implemented a variety of security controls to protect our users' data an
 **Vulnerability Reporting**
 
 If you discover a vulnerability in our systems or products, please report it to us immediately. We will investigate the vulnerability and take appropriate action to mitigate it.
-
-To report a vulnerability, please contact us at [security email address].
-
 **Conclusion**
 
 We are committed to protecting our users' data and our systems from attack. We have implemented a variety of security controls to achieve this goal. We also encourage our users to report any vulnerabilities they discover to us immediately.
