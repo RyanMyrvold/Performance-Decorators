@@ -14,9 +14,9 @@ This policy applies to all of our products and services, as well as all of our e
 
 We have implemented a variety of security controls to protect our users' data and our systems from attack. These controls include:
 
-* **Technical controls:** We use a variety of technical controls to protect our systems and data, including firewalls, intrusion detection systems, and data encryption.
-* **Process controls:** We have implemented a variety of process controls to ensure that our systems and data are handled securely. These controls include security training for our employees and contractors, as well as incident response procedures.
-* **Physical controls:** We have implemented a variety of physical controls to protect our systems and data from unauthorized access, such as access control systems and video surveillance.
+- **Technical controls:** We use a variety of technical controls to protect our systems and data, including firewalls, intrusion detection systems, and data encryption.
+- **Process controls:** We have implemented a variety of process controls to ensure that our systems and data are handled securely. These controls include security training for our employees and contractors, as well as incident response procedures.
+- **Physical controls:** We have implemented a variety of physical controls to protect our systems and data from unauthorized access, such as access control systems and video surveillance.
 
 **Vulnerability Reporting**
 
