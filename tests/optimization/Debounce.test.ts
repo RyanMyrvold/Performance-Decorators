@@ -81,7 +81,7 @@ describe("Debounce Decorator", () => {
         @Debounce(-100)
         invalidMethod(): void {}
       }
-    }).toThrow("🚨 [Debounce] Delay must be non-negative.");
+    }).toThrow("🐞 [Debounce] Delay must be non-negative.");
   });
 
   it("should throw an error for non-method declarations", () => {
