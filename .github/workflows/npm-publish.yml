@@ -28,6 +28,10 @@ jobs:
         with:
           node-version: 20
 
+      # Set up .npmrc for npm authentication
+      - name: Setup .npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       # Install dependencies
       - run: npm ci
 
