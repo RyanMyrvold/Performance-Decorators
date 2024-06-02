@@ -1,6 +1,6 @@
 {
   "name": "performance-decorators",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "A set of decorators to help with performance testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
