@@ -28,19 +28,13 @@ jobs:
         with:
           node-version: 20
 
-      # Set up .npmrc for npm authentication
       - name: Setup .npmrc
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
-      # Install dependencies
+      - run: cat ~/.npmrc  # Verify .npmrc contents
       - run: npm ci
-
-      # Fix package.json errors if any
-      - name: Fix package.json
-        run: npm pkg fix
-
-      # Publish to npm (scoped package)
-      - run: npm publish --access public
+      - run: npm pkg fix
+      - name: Publish to npm
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
