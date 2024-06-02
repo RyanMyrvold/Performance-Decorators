@@ -39,8 +39,8 @@ jobs:
       - name: Fix package.json
         run: npm pkg fix
 
-      # Publish to npm
-      - run: npm publish
+      # Publish to npm (scoped package)
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
