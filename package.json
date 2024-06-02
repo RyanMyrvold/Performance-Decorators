@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/RyanMyrvold/Performance-Decorators"
+    "url": "git+https://github.com/RyanMyrvold/Performance-Decorators.git"
   },
   "keywords": [
     "typescript",
