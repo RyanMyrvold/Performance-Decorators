@@ -21,6 +21,9 @@
   ],
   "author": "Ryan Myrvold",
   "license": "MIT",
+  "dependencies": {
+    "typescript": "*"
+  },
   "devDependencies": {
     "@types/jest": "*",
     "@types/node": "^20.10.2",
