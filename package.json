@@ -17,7 +17,12 @@
     "monitoring",
     "debugging",
     "performance",
-    "decorators"
+    "decorators",
+    "testing",
+    "debugging",
+    "optimization",
+    "lazy-loading",
+    "performance-analysis"
   ],
   "author": "Ryan Myrvold",
   "license": "MIT",
