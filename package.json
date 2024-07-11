@@ -1,12 +1,30 @@
 {
   "name": "performance-decorators",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "A set of decorators to help with performance testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./debugging": {
+      "types": "./dist/debugging/index.d.ts",
+      "import": "./dist/debugging/index.js"
+    },
+    "./optimization": {
+      "types": "./dist/optimization/index.d.ts",
+      "import": "./dist/optimization/index.js"
+    },
+    "./utilities": {
+      "types": "./dist/utilities/index.d.ts",
+      "import": "./dist/utilities/index.js"
+    }
   },
   "repository": {
     "type": "git",
