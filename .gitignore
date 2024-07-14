@@ -28,3 +28,4 @@ yarn-error.log*
 
 # Test logs
 coverage/
+/.vs
