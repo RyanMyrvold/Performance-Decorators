@@ -9,54 +9,46 @@
  * @param delay The number of milliseconds to delay; if zero or unspecified, a default of 300ms is used. The delay cannot be negative.
  * @returns MethodDecorator
  */
-function Debounce(delay: number = 300): MethodDecorator {
+function Debounce(delay: number = 300) {
     if (delay < 0) {
-        throw new Error("🐞 [Debounce] Delay must be non-negative.");
+      throw new Error("🐞 [Debounce] Delay must be non-negative.");
     }
-
-    return function (
-        target: Object,
-        propertyKey: string | symbol,
-        descriptor: TypedPropertyDescriptor<any>
-    ) {
-        if (typeof descriptor.value !== "function") {
-            throw new Error("🐞 [Debounce] Can only be applied to method declarations.");
-        }
-
-        const originalMethod = descriptor.value;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-        let lastResult: any;
-
-        descriptor.value = function (...args: any[]) {
-            // Documents handling different modes based on method's nature (sync/async).
-            let promiseExecutor = (
-                resolve: (value?: any) => void,
-                reject: (reason?: any) => void
-            ): void => {
-                clearTimeout(timeoutId as NodeJS.Timeout);
-                
-                timeoutId = setTimeout(() => {
-                    try {
-                        // Invoke the original method and resolve or reject based on outcome.
-                        const result = originalMethod.apply(this, args);
-                        if (result instanceof Promise) {
-                            result.then(resolve).catch(reject);
-                        } else {
-                            resolve(result);
-                        }
-                    } catch (error) {
-                        reject(error);
-                        console.error(`🚨 [Debounce] Error in method ${String(propertyKey)}: ${error}`);
-                    }
-                }, delay);
-            };
-
-            // Returns a new promise that will resolve or reject following the debounced invocation.
-            return new Promise(promiseExecutor);
+  
+    return function (originalMethod: Function, context: ClassMethodDecoratorContext) {
+      if (typeof originalMethod !== "function") {
+        throw new Error("🐞 [Debounce] Can only be applied to method declarations.");
+      }
+  
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  
+      return function (this: any, ...args: any[]) {
+        const promiseExecutor = (
+          resolve: (value?: any) => void,
+          reject: (reason?: any) => void
+        ): void => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+  
+          timeoutId = setTimeout(() => {
+            try {
+              const result = originalMethod.apply(this, args);
+              if (result instanceof Promise) {
+                result.then(resolve).catch(reject);
+              } else {
+                resolve(result);
+              }
+            } catch (error) {
+              reject(error);
+              console.error(`🚨 [Debounce] Error in method ${String(context.name)}: ${error}`);
+            }
+          }, delay);
         };
-
-        return descriptor;
+  
+        return new Promise(promiseExecutor);
+      };
     };
-}
-
-export default Debounce;
+  }
+  
+  export default Debounce;
+  

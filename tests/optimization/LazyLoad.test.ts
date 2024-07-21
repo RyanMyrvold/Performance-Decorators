@@ -1,33 +1,37 @@
-import { LazyLoad } from "../../src/optimization";
+// tests/LazyLoad.test.ts
 
-describe("LazyLoad Decorator", () => {
-  it("should lazily initialize the property", () => {
-    class TestClass {
-      @LazyLoad<string>()
-      lazyProperty!: string;
+import { LazyLoad } from '../../src/optimization';
+
+class TestClass {
+    @LazyLoad()
+    heavyComputation() {
+        console.log('Performing heavy computation...');
+        return { data: 'Computed data' };
     }
+}
 
-    const instance = new TestClass();
-    instance.lazyProperty = "test";
-    expect(instance.lazyProperty).toBe("test");
-  });
+describe('LazyLoad Decorator', () => {
+    it('should perform heavy computation only once', () => {
+        const testInstance = new TestClass();
+        const consoleSpy = jest.spyOn(console, 'log');
+        
+        const result1 = testInstance.heavyComputation();
+        expect(result1).toEqual({ data: 'Computed data' });
+        expect(consoleSpy).toHaveBeenCalledWith('Performing heavy computation...');
+        
+        const result2 = testInstance.heavyComputation();
+        expect(result2).toEqual({ data: 'Computed data' });
+        expect(consoleSpy).toHaveBeenCalledTimes(1); // Only called once
 
-  it("should call onInitialization and onSetValue callbacks", () => {
-    const onInitialization = jest.fn();
-    const onSetValue = jest.fn();
+        consoleSpy.mockRestore();
+    });
 
-    class CallbackTestClass {
-      @LazyLoad<string>({ onInitialization, onSetValue })
-      lazyProperty = "initial";
-    }
-
-    const instance = new CallbackTestClass();
-
-    // Access the property to trigger onInitialization
-    const value = instance.lazyProperty;
-    instance.lazyProperty = "test";
-
-    expect(onInitialization).toHaveBeenCalledWith("lazyProperty", "initial");
-    expect(onSetValue).toHaveBeenCalledWith("lazyProperty", "test");
-  });
+    it('should return the same result on subsequent calls', () => {
+        const testInstance = new TestClass();
+        
+        const result1 = testInstance.heavyComputation();
+        const result2 = testInstance.heavyComputation();
+        
+        expect(result1).toBe(result2); // The same object reference should be returned
+    });
 });

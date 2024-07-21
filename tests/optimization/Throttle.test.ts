@@ -1,11 +1,10 @@
 import Throttle from "../../src/optimization/Throttle";
 
-
 class TestClass {
   callCount = 0;
 
   @Throttle(200)
-  async throttledMethod(): Promise<void> {
+  throttledMethod(): void {
     this.callCount++;
   }
 }
@@ -15,11 +14,14 @@ describe('Throttle Decorator', () => {
 
   beforeEach(() => {
     testInstance = new TestClass();
+    jest.useFakeTimers();
   });
 
-  it('should throttle method calls', async () => {
-    jest.useFakeTimers();
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
+  it('should throttle method calls', () => {
     testInstance.throttledMethod();
     expect(testInstance.callCount).toBe(1);
 
@@ -37,8 +39,6 @@ describe('Throttle Decorator', () => {
 
     jest.advanceTimersByTime(100);
     expect(testInstance.callCount).toBe(3);
-
-    jest.useRealTimers();
   });
 
   it('should throw an error for negative delay', () => {
@@ -50,14 +50,12 @@ describe('Throttle Decorator', () => {
     }).toThrow("🚨 [Throttle] Delay must be non-negative.");
   });
 
-
   it('should throw an error for non-method declarations', () => {
     expect(() => {
       class InvalidTestClass {
-        @Throttle()
-        get invalidProperty(): void {
-          return;
-        }
+        // @ts-ignore
+        @Throttle(200)
+        invalidProperty: string = "invalid";
       }
     }).toThrow("🐞 [Throttle] Can only be applied to method declarations.");
   });

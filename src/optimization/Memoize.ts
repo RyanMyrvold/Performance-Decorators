@@ -1,29 +1,19 @@
-
 /**
  * Method decorator to cache results of expensive function calls based on arguments.
  * Useful for optimizing performance of deterministic functions by storing previous results.
  *
  * @returns MethodDecorator
  */
-function Memoize(): MethodDecorator {
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    if (typeof descriptor.value !== 'function') {
-      throw new Error("🐞 [Memoize] Can only be applied to method declarations.");
-    }
+function Memoize() {
+  return function (originalMethod: Function, context: ClassMethodDecoratorContext) {
+    const cacheSymbol = Symbol(`Memoize Cache: ${String(context.name)}`);
 
-    const originalMethod = descriptor.value;
-    const cacheSymbol = Symbol(`Memoize Cache: ${String(propertyKey)}`);
-
-    descriptor.value = function (...args: any[]) {
-      if (!(this as any)[cacheSymbol]) {
-        (this as any)[cacheSymbol] = new Map();
+    return function (this: any, ...args: any[]) {
+      if (!this[cacheSymbol]) {
+        this[cacheSymbol] = new Map();
       }
 
-      const cache = (this as any)[cacheSymbol];
+      const cache = this[cacheSymbol];
       const cacheKey = JSON.stringify(args);
 
       if (cache.has(cacheKey)) {
@@ -34,10 +24,7 @@ function Memoize(): MethodDecorator {
       cache.set(cacheKey, result);
       return result;
     };
-
-    return descriptor;
   };
 }
 
 export default Memoize;
-

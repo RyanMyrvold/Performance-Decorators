@@ -6,31 +6,27 @@
  * @param delay The number of milliseconds to limit the method calls.
  * @returns MethodDecorator
  */
-function Throttle(delay: number = 300): MethodDecorator {
+function Throttle(delay: number = 300) {
   if (delay < 0) {
     throw new Error("🚨 [Throttle] Delay must be non-negative.");
   }
 
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    if (typeof descriptor.value !== "function") {
-      throw new Error(
-        "🐞 [Throttle] Can only be applied to method declarations."
-      );
+  return function (originalMethod: any, context: ClassMethodDecoratorContext) {
+    // Ensure the decorator is applied to a method
+    if (typeof originalMethod !== 'function') {
+      throw new Error("🐞 [Throttle] Can only be applied to method declarations.");
     }
 
-    const originalMethod = descriptor.value;
     let lastCallTime: number = 0;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    descriptor.value = function (...args: any[]) {
+    return function (this: any, ...args: any[]): void {
       const now = Date.now();
-
       const timeSinceLastExecution = now - lastCallTime;
-      clearTimeout(timeoutId as NodeJS.Timeout);
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
 
       if (timeSinceLastExecution >= delay) {
         lastCallTime = now;
@@ -42,8 +38,6 @@ function Throttle(delay: number = 300): MethodDecorator {
         }, delay - timeSinceLastExecution);
       }
     };
-
-    return descriptor;
   };
 }
 

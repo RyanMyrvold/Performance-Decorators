@@ -1,51 +1,34 @@
-/**
- * Automatically retries a failed asynchronous operation until it succeeds or reaches
- * the maximum number of retries. Useful for operations that may fail due to temporary
- * issues such as network connectivity.
- *
- * @param retries - Maximum number of retries.
- * @param delay - Delay in milliseconds between retries.
- * @returns - Method decorator that applies the retry logic.
- */
-function AutoRetry(retries: number = 3, delay: number = 500): MethodDecorator {
+// decorators/AutoRetry.ts
+
+type Method = (...args: any[]) => Promise<any>;
+
+function AutoRetry(retries: number = 3, delay: number = 500) {
   if (retries < 0 || delay < 0) {
     throw new Error("🚨 [Auto Retry] Retries and delay must be non-negative.");
   }
 
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    const originalMethod = descriptor.value;
+  return function (originalMethod: Method, context: ClassMethodDecoratorContext) {
     if (typeof originalMethod !== "function") {
       throw new Error("🐞 [Auto Retry] Can only be applied to methods.");
     }
 
-    if (!originalMethod.constructor.name.includes('AsyncFunction')) {
-      throw new Error("🐞 [Auto Retry] Can only be applied to async methods.");
-    }
-
-    descriptor.value = async function (...args: any[]) {
-      const context = this;
-
+    return async function (this: any, ...args: any[]) {
       const retry = async (attempt: number): Promise<any> => {
         try {
-          return await originalMethod.apply(context, args);
-        } catch (error) {
+          return await originalMethod.apply(this, args);
+        } catch (error: unknown) {
           if (attempt < retries) {
             await new Promise((resolve) => setTimeout(resolve, delay));
             return retry(attempt + 1);
           } else {
-            throw new Error(`🚨 [Auto Retry] Failed after ${retries} retries: ${error}`);
+            const errorMessage = (error instanceof Error) ? error.message : String(error);
+            throw new Error(`🚨 [Auto Retry] Failed after ${retries} retries: ${errorMessage}`);
           }
         }
       };
 
       return retry(0);
     };
-
-    return descriptor;
   };
 }
 

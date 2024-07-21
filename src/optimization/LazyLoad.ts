@@ -21,41 +21,18 @@ export interface LazyLoadOptions<T> {
  * 
  * @param options Optional configuration for the LazyLoad behavior.
  */
-export function LazyLoad<T>(options?: LazyLoadOptions<T>): PropertyDecorator {
-  return (target: Object, propertyKey: string | symbol) => {
-    let value: T | undefined;
-    let initialized = false;
-
-    Object.defineProperty(target, propertyKey, {
-      configurable: true,
-      enumerable: true,
-
-      get(): T {
-        if (!initialized) {
-          value = (target as any)[propertyKey];
-          initialized = true;
-          if (options?.onInitialization) {
-            options.onInitialization(String(propertyKey), value);
+function LazyLoad() {
+  return function (originalMethod: Function, context: ClassMethodDecoratorContext) {
+      const methodName = context.name;
+      const symbol = Symbol(`__${String(methodName)}__lazy`);
+      
+      return function (this: any, ...args: any[]) {
+          if (!this[symbol]) {
+              this[symbol] = originalMethod.apply(this, args);
           }
-        }
-        return value as T;
-      },
-
-      set(newValue: T) {
-        value = newValue;
-        if (initialized) {
-          if (options?.onSetValue) {
-            options.onSetValue(String(propertyKey), newValue);
-          }
-        } else {
-          initialized = true;
-          if (options?.onInitialization) {
-            options.onInitialization(String(propertyKey), newValue);
-          }
-        }
+          return this[symbol];
       }
-    });
-  };
+  }
 }
 
 export default LazyLoad;

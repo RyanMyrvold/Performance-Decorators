@@ -83,15 +83,4 @@ describe("Debounce Decorator", () => {
       }
     }).toThrow("🐞 [Debounce] Delay must be non-negative.");
   });
-
-  it("should throw an error for non-method declarations", () => {
-    expect(() => {
-      class InvalidTestClass {
-        @Debounce()
-        get invalidProperty(): void {
-          return;
-        }
-      }
-    }).toThrow("🐞 [Debounce] Can only be applied to method declarations.");
-  });
 });

@@ -14,7 +14,6 @@ Elevate your application's performance monitoring and optimization in Node.js an
 
 ### Optimization Decorators
 
-- **BatchOperations**: Method Decorator - Batches multiple calls into a single asynchronous operation, ideal for reducing redundant operations in frequent calls.
 - **Debounce**: Method Decorator - Limits the rate at which a function can fire, perfect for handling events like resizing, scrolling, or keypresses.
 - **Memoize**: Method Decorator - Caches the results of expensive function calls, optimizing performance by avoiding repeated calculations.
 - **Throttle**: Method Decorator - Ensures a function is not called more than once in a specified period, useful for rate-limiting execution of handlers on frequent events.
@@ -127,25 +126,6 @@ const instance = new MyMonitoredClass();
 
 ### Optimization Decorators Usage
 
-#### Batch Operations
-
-```typescript
-import { BatchOperations } from "performance-decorators/optimization";
-
-class Renderer {
-  @BatchOperations()
-  render(changes: any[][]) {
-    for (const changeBatch of changes) {
-      console.log("Applying batch changes:", changeBatch);
-    }
-  }
-}
-
-const renderer = new Renderer();
-renderer.render([{ item: 1 }]);
-renderer.render([{ item: 2 }]);
-```
-
 #### Debounce
 
 ```typescript
@@ -177,7 +157,6 @@ class Calculator {
     if (n <= 1) return n;
     return this.fibonacci(n - 1) + this.fibonacci(n - 2);
   }
-}
 
 const calculator = new Calculator();
 console.log(calculator.fibonacci(10)); // Computed
