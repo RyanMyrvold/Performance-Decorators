@@ -4,10 +4,7 @@
  * @param errorHandler - An optional custom error handler function that takes the error and method name as parameters.
  * @returns MethodDecorator
  */
-function LogMethodError(
-  rethrow: boolean = true,
-  errorHandler?: (error: Error, methodName: string) => void
-): MethodDecorator {
+function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, methodName: string) => void) {
   /**
    * Logs the given error using the provided error handler or console.
    * @param error - The error to log.
@@ -16,35 +13,28 @@ function LogMethodError(
    */
   function logError(error: any, methodName: string): Error {
     // Convert non-Error exceptions to Error instances
-    const errorToLog =
-      error instanceof Error ? error: new Error(`Non-Error exception: ${error}`);
+    const errorToLog = error instanceof Error ? error : new Error(`Non-Error exception: ${error}`);
 
     // Use custom error handler if provided, otherwise log to console
     if (errorHandler) {
       errorHandler(errorToLog, methodName);
     } else {
-      console.error(`🚨 [Error] ${methodName} encountered an error:`,errorToLog);
+      console.error(`🚨 [Error] ${methodName} encountered an error:`, errorToLog);
     }
 
     return errorToLog;
   }
 
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    if (typeof descriptor.value !== "function") {
+  return function (originalMethod: any, context: any) {
+    if (typeof originalMethod !== "function") {
       throw new Error("🐞 [Error] Can only be applied to methods.");
     }
 
-    const originalMethod = descriptor.value;
-    const methodName = `${target.constructor.name}.${String(propertyKey)}`;
-
-    descriptor.value = function (...args: any[]) {
+    return function (this: any, ...args: any[]) {
       try {
         return originalMethod.apply(this, args);
       } catch (error) {
+        const methodName = typeof context.name === 'symbol' ? String(context.name) : context.name;
         const errorToRethrow = logError(error, methodName);
 
         // Rethrow the error if the rethrow flag is true
@@ -53,8 +43,6 @@ function LogMethodError(
         }
       }
     };
-
-    return descriptor;
   };
 }
 

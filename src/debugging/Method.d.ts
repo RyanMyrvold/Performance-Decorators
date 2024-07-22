@@ -1,0 +1,1 @@
+type Method = (...args: any[]) => Promise<any>;

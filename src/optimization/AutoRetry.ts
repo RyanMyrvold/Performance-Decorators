@@ -1,6 +1,7 @@
 // decorators/AutoRetry.ts
 
-type Method = (...args: any[]) => Promise<any>;
+
+
 
 function AutoRetry(retries: number = 3, delay: number = 500) {
   if (retries < 0 || delay < 0) {

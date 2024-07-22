@@ -1,59 +1,50 @@
 import { getMemoryUsage } from "../utilities/MemoryUtilities";
 
-
 /**
  * Decorator to log the memory usage before and after the method execution. It uses process.memoryUsage()
  * in Node.js and performance.memory in browsers (where available).
  * @param memoryHandler - An optional custom memory handler function that takes the memory usage data and method name as parameters.
  * @returns MethodDecorator
  */
-function LogMemoryUsage(
-  memoryHandler?: (memoryUsed: number, methodName: string) => void
-): MethodDecorator {
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    if (typeof descriptor.value !== "function") {
+function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string) => void) {
+  return function (originalMethod: any, context: any) {
+    if (typeof originalMethod !== "function") {
       throw new Error("🐞 [LogMemoryUsage] Can only be applied to methods.");
     }
 
-    const originalMethod = descriptor.value;
-
-    descriptor.value = function (...args: any[]) {
-      const memoryBefore = getMemoryUsage();
-
-      if (memoryBefore === undefined) {
-        console.error(
-          "🐞 [Memory Usage] Memory measurement is not supported in this environment."
-        );
-
+    return function (this: any, ...args: any[]) {
+      let memoryBefore;
+      try {
+        memoryBefore = getMemoryUsage();
+      } catch (error) {
+        console.error("🐞 [Memory Usage] Error measuring memory before execution:", error);
         return originalMethod.apply(this, args);
       }
 
       const result = originalMethod.apply(this, args);
 
-      const memoryAfter = getMemoryUsage();
+      let memoryAfter;
+      try {
+        memoryAfter = getMemoryUsage();
+      } catch (error) {
+        console.error("🐞 [Memory Usage] Error measuring memory after execution:", error);
+        return result;
+      }
 
-      if (memoryAfter === undefined) {
-        console.error(
-          "🐞 [Memory Usage] Memory measurement is not supported in this environment."
-        );
-
+      if (memoryBefore === undefined || memoryAfter === undefined) {
+        console.error("🐞 [Memory Usage] Memory measurement is not supported in this environment.");
         return result;
       }
 
       const memoryUsed = memoryAfter - memoryBefore;
+      const methodName = typeof context.name === 'symbol' ? String(context.name) : context.name;
 
-      console.log(`🧠 [Memory Usage] ${target.constructor.name}.${String(propertyKey)}: Memory used=${memoryUsed} bytes`);
+      console.log(`🧠 [Memory Usage] ${methodName}: Memory used=${memoryUsed} bytes`);
 
-      memoryHandler?.(memoryUsed,`${target.constructor.name}.${String(propertyKey)}`);
+      memoryHandler?.(memoryUsed, methodName);
 
       return result;
     };
-
-    return descriptor;
   };
 }
 

@@ -1,5 +1,5 @@
+import { isBrowserEnvironment, isNodeEnvironment } from "../../src/utilities";
 import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities/TimeUtilities";
-
 
 /**
  * Decorator to log the execution time of a method. It uses high-resolution time in Node.js
@@ -7,49 +7,65 @@ import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities
  * @param handler - A custom handler function that takes the execution time and method name as parameters.
  * @returns MethodDecorator
  */
-function LogExecutionTime(
-  handler?: (executionTime: number, methodName: string) => void
-): MethodDecorator {
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    if (typeof descriptor.value !== "function") {
+function LogExecutionTime(handler?: (executionTime: number, methodName: string) => void) {
+
+  return function (originalMethod: any, context: any) {
+
+    if (typeof originalMethod !== "function") {
       throw new Error("🐞 [Execution Time] Can only be applied to methods.");
     }
 
-    const originalMethod = descriptor.value;
-
-    descriptor.value = function (...args: any[]) {
+    return function (this: any, ...args: any[]) {
       let start: number | bigint;
-      let end: number | bigint;
-
+      let end: number | bigint = 0; // Initialize 'end' variable with a default value
+      
       try {
-        start = getHighResolutionTime();
+        if (isBrowserEnvironment()) {
+          start = performance.now();
+        } else if (isNodeEnvironment()) {
+          start = getHighResolutionTime();
+        } else {
+          throw new Error("Unsupported environment for high-resolution timing");
+        }
       } catch (error) {
-        console.error(error);
-
+        console.error("Error getting high-resolution time:", error);
         return originalMethod.apply(this, args);
       }
 
-      const result = originalMethod.apply(this, args);
-
       try {
-        
-        end = getHighResolutionTime();
+        const result = originalMethod.apply(this, args);
 
-        const executionTime = calculateTimeInMilliseconds(start, end);
+        let end: number | bigint = 0; // Initialize 'end' variable with a default value
+        try {
+          if (isBrowserEnvironment()) {
+            end = performance.now();
+          } else if (isNodeEnvironment()) {
+            end = getHighResolutionTime();
+          }
+          const executionTime = calculateTimeInMilliseconds(start, end);
+          const methodName = context.name;
+          handler?.(executionTime, methodName);
+        } catch (error) {
+          console.error("Error calculating execution time:", error);
+        }
 
-        handler?.(executionTime,`${target.constructor.name}.${String(propertyKey)}`);
+        return result;
       } catch (error) {
-        console.error(error);
+        try {
+          if (isBrowserEnvironment()) {
+            end = performance.now();
+          } else if (isNodeEnvironment()) {
+            end = getHighResolutionTime();
+          }
+          const executionTime = calculateTimeInMilliseconds(start, end);
+          const methodName = context.name;
+          handler?.(executionTime, methodName);
+        } catch (innerError) {
+          console.error("Error calculating execution time:", innerError);
+        }
+        throw error; // rethrow the original error
       }
-
-      return result;
     };
-
-    return descriptor;
   };
 }
 

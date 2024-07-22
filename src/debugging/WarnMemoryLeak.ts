@@ -1,4 +1,4 @@
-import { getMemoryUsage } from "../utilities/MemoryUtilities";
+import { getMemoryUsage, isNodeEnvironment } from "../utilities";
 
 /**
  * Class decorator to monitor and warn about potential memory leaks.
@@ -8,75 +8,58 @@ import { getMemoryUsage } from "../utilities/MemoryUtilities";
  * @param thresholdPercent - Percentage increase in memory usage to trigger warning.
  * @param logger - Logging function to use for warnings.
  * @param enableManualGC - Enables manual garbage collection in Node.js (requires --expose-gc flag).
- * @returns ClassDecorator
  */
 function WarnMemoryLeak(
   checkIntervalMs: number = 30000,
   thresholdPercent: number = 20,
   logger: (msg: string) => void = console.warn,
   enableManualGC: boolean = false
-): ClassDecorator {
-  return function (constructor: Function) {
-    const className = constructor.name;
-    let intervalId: NodeJS.Timeout | number | null = null;
+) {
+  return (target: any) => {
+    return class extends target {
+      public intervalId: NodeJS.Timeout | number | null = null;
+      public initialMemoryUsage: number | undefined;
+      public className: string;
 
-    const augmentedConstructor: any = function (...args: any[]) {
-      const instance = new (constructor as new (...args: any[]) => any)(
-        ...args
-      );
+      constructor(...args: any[]) {
+        super(...args);
+        this.className = target.name;
+        this.initialMemoryUsage = getMemoryUsage();
+        this.setupMemoryLeakCheck();
+      }
 
-      // Initial memory usage
-      let initialMemoryUsage = getMemoryUsage();
-
-      // Function to check for memory leaks
-      function checkForMemoryLeaks() {
-        const currentMemoryUsage = getMemoryUsage();
-
-        if (
-          currentMemoryUsage !== undefined &&
-          initialMemoryUsage !== undefined
-        ) {
-          const increase =
-            ((currentMemoryUsage - initialMemoryUsage) / initialMemoryUsage) *
-            100;
-
-          // Trigger warning if memory usage exceeds the threshold
-          if (increase > thresholdPercent) {
-            logger(`⚠️ [Memory Leak] Memory usage increased by ${increase.toFixed(2)}% in ${className}, indicating a potential memory leak.`
-            );
+      public setupMemoryLeakCheck() {
+        const checkForMemoryLeaks = () => {
+          const currentMemoryUsage = getMemoryUsage();
+          if (currentMemoryUsage !== undefined && this.initialMemoryUsage !== undefined) {
+            const increase = ((currentMemoryUsage - this.initialMemoryUsage) / this.initialMemoryUsage) * 100;
+            if (increase > thresholdPercent) {
+              logger(`⚠️ [Memory Leak] Memory usage increased by ${increase.toFixed(2)}% in ${this.className}, indicating a potential memory leak.`);
+            }
           }
+        };
+
+        const maybeRunGC = () => {
+          if (enableManualGC && isNodeEnvironment() && typeof global.gc === "function") {
+            global.gc();
+          }
+        };
+
+        if (!this.intervalId) {
+          this.intervalId = setInterval(() => {
+            maybeRunGC();
+            checkForMemoryLeaks();
+          }, checkIntervalMs);
         }
       }
 
-      // Manual garbage collection in Node.js environment
-      function maybeRunGC() {
-        if (enableManualGC && typeof global.gc === "function") {
-          global.gc();
+      public cleanup() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId as NodeJS.Timeout);
+          this.intervalId = null;
         }
       }
-
-      // Set up an interval for memory usage checking
-      if (!intervalId) {
-        intervalId = setInterval(() => {
-          maybeRunGC();
-          checkForMemoryLeaks();
-        }, checkIntervalMs);
-      }
-
-      // Cleanup mechanism
-      instance._cleanup = () => {
-        if (intervalId) {
-          clearInterval(intervalId as NodeJS.Timeout);
-          intervalId = null;
-        }
-      };
-
-      return instance;
     };
-
-    augmentedConstructor.prototype = constructor.prototype;
-
-    return augmentedConstructor;
   };
 }
 

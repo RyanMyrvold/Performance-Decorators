@@ -6,26 +6,20 @@
  *                             the execution time and method name as parameters.
  * @returns MethodDecorator
  */
-function WarnPerformanceThreshold(
-  threshold: number = 100,
-  performanceHandler?: (executionTime: number, methodName: string) => void
-): MethodDecorator {
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
-    if (typeof descriptor.value !== "function") {
+function WarnPerformanceThreshold(threshold: number = 100, performanceHandler?: (executionTime: number, methodName: string) => void) {
+
+  return function (originalMethod: Function, context: { kind: string, name: string | symbol }) {
+    
+    if (typeof originalMethod !== "function") {
       throw new Error("🐞 [Performance Threshold] Can only be applied to methods.");
     }
 
-    const originalMethod = descriptor.value;
-    const isNodeEnvironment =
-      typeof process !== "undefined" && process.hrtime && process.hrtime.bigint;
-    const isBrowserEnvironment =
-      typeof performance !== "undefined" && performance.now;
+    return function (this: any, ...args: any[]) {
+      const isNodeEnvironment =
+        typeof process !== "undefined" && process.hrtime && process.hrtime.bigint;
+      const isBrowserEnvironment =
+        typeof performance !== "undefined" && performance.now;
 
-    descriptor.value = function (...args: any[]) {
       let start: number | bigint | undefined;
       let end: number | bigint | undefined;
       let executionTime: number;
@@ -50,15 +44,14 @@ function WarnPerformanceThreshold(
       }
 
       if (executionTime > threshold) {
-        const warningMessage = `⚠️ [Performance] ${target.constructor.name}.${String(propertyKey)} exceeded threshold of ${threshold} ms`;
+        const methodName = typeof context.name === 'symbol' ? String(context.name) : context.name;
+        const warningMessage = `⚠️ [Performance] ${methodName} exceeded threshold of ${threshold} ms`;
         console.warn(warningMessage);
-        performanceHandler?.(executionTime,`${target.constructor.name}.${String(propertyKey)}`);
+        performanceHandler?.(executionTime, methodName);
       }
 
       return result;
     };
-
-    return descriptor;
   };
 }
 

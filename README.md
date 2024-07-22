@@ -113,7 +113,25 @@ class PerformanceExample {
 #### Memory Leak Warning
 
 ```typescript
-import { MemoryLeakWarning } from "performance-decorators/debugging";
+import WarnMemoryLeak from "performance-decorators/debugging";
+
+/**
+ * Class decorator to monitor and warn about potential memory leaks.
+ * Works in both Node.js and browser environments.
+ *
+ * @param checkIntervalMs - Interval in milliseconds to check memory usage.
+ * @param thresholdPercent - Percentage increase in memory usage to trigger warning.
+ * @param logger - Logging function to use for warnings.
+ * @param enableManualGC - Enables manual garbage collection in Node.js (requires --expose-gc flag).
+ */
+function MemoryLeakWarning(
+  checkIntervalMs: number = 30000,
+  thresholdPercent: number = 20,
+  logger: (msg: string) => void = console.warn,
+  enableManualGC: boolean = false
+) {
+  return WarnMemoryLeak(checkIntervalMs, thresholdPercent, logger, enableManualGC);
+}
 
 @MemoryLeakWarning(30000, 20, console.warn, false)
 class MyMonitoredClass {
@@ -157,6 +175,7 @@ class Calculator {
     if (n <= 1) return n;
     return this.fibonacci(n - 1) + this.fibonacci(n - 2);
   }
+}
 
 const calculator = new Calculator();
 console.log(calculator.fibonacci(10)); // Computed
