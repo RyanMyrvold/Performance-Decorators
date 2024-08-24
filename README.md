@@ -7,18 +7,19 @@ Elevate your application's performance monitoring and optimization in Node.js an
 ### Debugging Decorators
 
 - **LogExecutionTime**: Method Decorator - Logs method execution times, helping pinpoint performance bottlenecks.
-- **WarnPerformanceThreshold**: Method Decorator - Alerts when methods surpass predefined execution time thresholds.
 - **LogMemoryUsage**: Method Decorator - Tracks and logs memory usage, aiding in efficient resource management.
 - **LogMethodError**: Method Decorator - Handles and logs method errors, with an option to rethrow them.
-- **MemoryLeakWarning**: Class Decorator - Monitors and warns of potential memory leaks, supporting both Node.js and browsers. Options include setting check intervals, memory usage thresholds, custom logging, and manual garbage collection in Node.js.
+- **WarnMemoryLeak**: Class Decorator - Monitors and warns of potential memory leaks, supporting both Node.js and browsers. Options include setting check intervals, memory usage thresholds, custom logging, and manual garbage collection in Node.js.
+- **WarnPerformanceThreshold**: Method Decorator - Alerts when methods surpass predefined execution time thresholds.
+- **LogNetworkRequests**: Method Decorator - Logs network requests made within the decorated method, providing insights into network performance bottlenecks.
 
 ### Optimization Decorators
 
+- **AutoRetry**: Method Decorator - Automatically retries a failed asynchronous operation until it succeeds or reaches a maximum number of retries.
 - **Debounce**: Method Decorator - Limits the rate at which a function can fire, perfect for handling events like resizing, scrolling, or keypresses.
+- **LazyLoad**: Property Decorator - Delays the initialization of properties until they are first accessed, optimizing resource use and computation time.
 - **Memoize**: Method Decorator - Caches the results of expensive function calls, optimizing performance by avoiding repeated calculations.
 - **Throttle**: Method Decorator - Ensures a function is not called more than once in a specified period, useful for rate-limiting execution of handlers on frequent events.
-- **AutoRetry**: Method Decorator - Automatically retries a failed asynchronous operation until it succeeds or reaches a maximum number of retries.
-- **LazyLoad**: Property Decorator - Delays the initialization of properties until they are first accessed, optimizing resource use and computation time.
 
 ## 📦 Installation
 
@@ -46,26 +47,6 @@ class PerformanceExample {
   @LogExecutionTime((time, method) => console.log(`${method} took ${time} ms`))
   detailedMethod() {
     // More complex task
-  }
-}
-```
-
-#### Warn Performance Threshold
-
-```typescript
-import { WarnPerformanceThreshold } from "performance-decorators/debugging";
-
-class PerformanceExample {
-  @WarnPerformanceThreshold()
-  methodWithDefaultThreshold() {
-    // Task to be monitored
-  }
-
-  @WarnPerformanceThreshold(200, (time, method) =>
-    console.warn(`${method} exceeded ${time} ms`)
-  )
-  methodWithCustomThreshold() {
-    // Another monitored task
   }
 }
 ```
@@ -110,7 +91,7 @@ class PerformanceExample {
 }
 ```
 
-#### Memory Leak Warning
+#### Warn Memory Leak
 
 ```typescript
 import WarnMemoryLeak from "performance-decorators/debugging";
@@ -142,7 +123,73 @@ class MyMonitoredClass {
 const instance = new MyMonitoredClass();
 ```
 
+#### Warn Performance Threshold
+
+```typescript
+import { WarnPerformanceThreshold } from "performance-decorators/debugging";
+
+class PerformanceExample {
+  @WarnPerformanceThreshold()
+  methodWithDefaultThreshold() {
+    // Task to be monitored
+  }
+
+  @WarnPerformanceThreshold(200, (time, method) =>
+    console.warn(`${method} exceeded ${time} ms`)
+  )
+  methodWithCustomThreshold() {
+    // Another monitored task
+  }
+}
+```
+
+#### Log Network Requests
+
+```typescript
+import LogNetworkRequests from "performance-decorators/debugging";
+
+class PerformanceExample {
+  @LogNetworkRequests()
+  async fetchData(url: string): Promise<void> {
+    const response = await fetch(url);
+    return response.json();
+  }
+
+  @LogNetworkRequests((log) => {
+    console.log(`Custom Logger - ${log.method} request to ${log.url} took ${log.duration.toFixed(2)}ms`);
+  })
+  async fetchDataWithCustomLogger(url: string): Promise<void> {
+    const response = await fetch(url);
+    return response.json();
+  }
+}
+```
+
 ### Optimization Decorators Usage
+
+#### AutoRetry
+
+```typescript
+import { AutoRetry } from "performance-decorators/optimization";
+
+class DataService {
+  @AutoRetry(3, 1000) // Retry up to 3 times with a 1-second delay
+  async fetchData(url: string) {
+    console.log(`Fetching data from ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("Network response was not ok.");
+    }
+    return response.json();
+  }
+}
+
+const service = new DataService();
+service
+  .fetchData("https://api.example.com/data")
+  .then((data) => console.log("Data fetched successfully:", data))
+  .catch((error) => console.error("Failed to fetch data:", error));
+```
 
 #### Debounce
 
@@ -162,6 +209,27 @@ class SearchComponent {
 
 const searchComponent = new SearchComponent();
 searchComponent.onSearch("hello");
+```
+
+#### LazyLoad
+
+```typescript
+import { LazyLoad } from "performance-decorators/optimization";
+
+class ExpensiveComputation {
+  @LazyLoad()
+  get expensiveData() {
+    console.log("Computing expensive data");
+    return Array.from({ length: 1000000 }, (_, i) => Math.sqrt(i));
+  }
+}
+
+const computation = new ExpensiveComputation();
+console.log("ExpensiveComputation instance created");
+
+// The first access triggers the computation
+console.log(computation.expensiveData[1000]); // Initializes and accesses the data
+console.log(computation.expensiveData[2000]); // Accesses cached data
 ```
 
 #### Memoize
@@ -196,51 +264,6 @@ class ScrollHandler {
 
 const handler = new ScrollHandler();
 window.addEventListener("scroll", handler.onScroll);
-```
-
-#### AutoRetry
-
-```typescript
-import { AutoRetry } from "performance-decorators/optimization";
-
-class DataService {
-  @AutoRetry(3, 1000) // Retry up to 3 times with a 1-second delay
-  async fetchData(url: string) {
-    console.log(`Fetching data from ${url}`);
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Network response was not ok.");
-    }
-    return response.json();
-  }
-}
-
-const service = new DataService();
-service
-  .fetchData("https://api.example.com/data")
-  .then((data) => console.log("Data fetched successfully:", data))
-  .catch((error) => console.error("Failed to fetch data:", error));
-```
-
-#### LazyLoad
-
-```typescript
-import { LazyLoad } from "performance-decorators/optimization";
-
-class ExpensiveComputation {
-  @LazyLoad()
-  get expensiveData() {
-    console.log("Computing expensive data");
-    return Array.from({ length: 1000000 }, (_, i) => Math.sqrt(i));
-  }
-}
-
-const computation = new ExpensiveComputation();
-console.log("ExpensiveComputation instance created");
-
-// The first access triggers the computation
-console.log(computation.expensiveData[1000]); // Initializes and accesses the data
-console.log(computation.expensiveData[2000]); // Accesses cached data
 ```
 
 ## 📘 API Documentation
