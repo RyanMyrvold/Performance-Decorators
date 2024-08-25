@@ -12,6 +12,7 @@ Elevate your application's performance monitoring and optimization in Node.js an
 - **WarnMemoryLeak**: Class Decorator - Monitors and warns of potential memory leaks, supporting both Node.js and browsers. Options include setting check intervals, memory usage thresholds, custom logging, and manual garbage collection in Node.js.
 - **WarnPerformanceThreshold**: Method Decorator - Alerts when methods surpass predefined execution time thresholds.
 - **LogNetworkRequests**: Method Decorator - Logs network requests made within the decorated method, providing insights into network performance bottlenecks.
+- **LogReturnValue**: Method Decorator - Logs the return value of a method, aiding in debugging and ensuring methods return expected results.
 
 ### Optimization Decorators
 
@@ -163,6 +164,29 @@ class PerformanceExample {
     return response.json();
   }
 }
+```
+
+#### Log Return Value
+
+```typescript
+import LogReturnValue from "performance-decorators/debugging";
+
+class ExampleService {
+  @LogReturnValue()
+  calculateSum(a: number, b: number): number {
+    return a + b;
+  }
+
+  @LogReturnValue((value, methodName) => console.log(`[${methodName}] returned:`, value))
+  async fetchData(url: string): Promise<any> {
+    const response = await fetch(url);
+    return response.json();
+  }
+}
+
+const service = new ExampleService();
+console.log(service.calculateSum(3, 4)); // Logs and returns 7
+service.fetchData('https://api.example.com/data'); // Logs the returned JSON data
 ```
 
 ### Optimization Decorators Usage
