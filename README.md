@@ -1,6 +1,6 @@
-# 🚀 Performance Decorators
+# 🚀 Performance Decorators: A TypeScript Library for Efficient Performance Monitoring & Optimization
 
-Elevate your application's performance monitoring and optimization in Node.js and browsers with **Performance Decorators**, a TypeScript-based toolkit. Our decorators simplify the task of tracking performance bottlenecks and optimizing performance efficiently.
+Elevate your application's performance with Performance Decorators! This TypeScript library provides powerful tools for seamless performance monitoring and optimization in both Node.js and browser environments. Simplify the task of identifying performance bottlenecks and ensure your applications run efficiently with our easy-to-use decorators.
 
 ## 🌟 Features
 
@@ -64,7 +64,7 @@ class PerformanceExample {
   }
 
   @LogMemoryUsage((usedMemory, method) =>
-    console.log(`${method} used ${usedMemory} bytes`)
+    console.log(`${method} used ${usedMemory} bytes`),
   )
   detailedMemoryMethod() {
     // Task with detailed memory monitoring
@@ -84,7 +84,7 @@ class PerformanceExample {
   }
 
   @LogMethodError(true, (error, method) =>
-    console.error(`${method} error: ${error.message}`)
+    console.error(`${method} error: ${error.message}`),
   )
   methodWithCustomErrorHandling() {
     throw new Error("Custom error");
@@ -110,9 +110,14 @@ function MemoryLeakWarning(
   checkIntervalMs: number = 30000,
   thresholdPercent: number = 20,
   logger: (msg: string) => void = console.warn,
-  enableManualGC: boolean = false
+  enableManualGC: boolean = false,
 ) {
-  return WarnMemoryLeak(checkIntervalMs, thresholdPercent, logger, enableManualGC);
+  return WarnMemoryLeak(
+    checkIntervalMs,
+    thresholdPercent,
+    logger,
+    enableManualGC,
+  );
 }
 
 @MemoryLeakWarning(30000, 20, console.warn, false)
@@ -136,7 +141,7 @@ class PerformanceExample {
   }
 
   @WarnPerformanceThreshold(200, (time, method) =>
-    console.warn(`${method} exceeded ${time} ms`)
+    console.warn(`${method} exceeded ${time} ms`),
   )
   methodWithCustomThreshold() {
     // Another monitored task
@@ -157,7 +162,9 @@ class PerformanceExample {
   }
 
   @LogNetworkRequests((log) => {
-    console.log(`Custom Logger - ${log.method} request to ${log.url} took ${log.duration.toFixed(2)}ms`);
+    console.log(
+      `Custom Logger - ${log.method} request to ${log.url} took ${log.duration.toFixed(2)}ms`,
+    );
   })
   async fetchDataWithCustomLogger(url: string): Promise<void> {
     const response = await fetch(url);
@@ -177,7 +184,9 @@ class ExampleService {
     return a + b;
   }
 
-  @LogReturnValue((value, methodName) => console.log(`[${methodName}] returned:`, value))
+  @LogReturnValue((value, methodName) =>
+    console.log(`[${methodName}] returned:`, value),
+  )
   async fetchData(url: string): Promise<any> {
     const response = await fetch(url);
     return response.json();
@@ -186,7 +195,7 @@ class ExampleService {
 
 const service = new ExampleService();
 console.log(service.calculateSum(3, 4)); // Logs and returns 7
-service.fetchData('https://api.example.com/data'); // Logs the returned JSON data
+service.fetchData("https://api.example.com/data"); // Logs the returned JSON data
 ```
 
 ### Optimization Decorators Usage
@@ -226,7 +235,7 @@ class SearchComponent {
     console.log(`Searching for: ${term}`);
     // Simulate an API call
     return fetch(`/api/search?q=${encodeURIComponent(term)}`).then((res) =>
-      res.json()
+      res.json(),
     );
   }
 }
