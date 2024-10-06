@@ -1,6 +1,6 @@
-# 🚀 Performance Decorators
+# 🚀 Performance Decorators: A TypeScript Library for Efficient Performance Monitoring & Optimization
 
-Elevate your application's performance monitoring and optimization in Node.js and browsers with **Performance Decorators**, a TypeScript-based toolkit. Our decorators simplify the task of tracking performance bottlenecks and optimizing performance efficiently.
+Elevate your application's performance with Performance Decorators! This TypeScript library provides powerful tools for seamless performance monitoring and optimization in both Node.js and browser environments. Simplify the task of identifying performance bottlenecks and ensure your applications run efficiently with our easy-to-use decorators.
 
 ## 🌟 Features
 
