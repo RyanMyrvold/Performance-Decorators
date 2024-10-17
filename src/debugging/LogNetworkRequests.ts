@@ -1,10 +1,4 @@
-import { getMemoryUsage, isBrowserEnvironment, isNodeEnvironment } from "../utilities";
-
-
-/**
- * Type alias for the logging function that handles network log entries.
- */
-type LogFunction = (log: NetworkLog) => void;
+import { getHighResolutionTime, isBrowserEnvironment, isNodeEnvironment } from '../utilities';
 
 /**
  * Default logging function that outputs network logs to the console.
@@ -22,55 +16,74 @@ const defaultLogFunction: LogFunction = (log: NetworkLog) => {
  * @returns A decorator function.
  */
 function LogNetworkRequests(logFn: LogFunction = defaultLogFunction) {
-    return function (originalMethod: any, context: any) {
-      if (typeof originalMethod !== "function") {
-        throw new Error("🐞 [Log Network Request] Can only be applied to methods.");
+  return function (originalMethod: any, context: any) {
+    if (typeof originalMethod !== 'function') {
+      throw new Error('🐞 [Log Network Request] Can only be applied to methods.');
+    }
+
+    return async function (this: any, ...args: any[]) {
+      if (!isBrowserEnvironment() && !isNodeEnvironment()) {
+        console.warn('[Network Request] Unsupported environment.');
+        return originalMethod.apply(this, args);
       }
-  
-      return async function (this: any, ...args: any[]) {
-        if (!isBrowserEnvironment() && !isNodeEnvironment()) {
-          console.warn('[Network Request] Unsupported environment.');
-          return originalMethod.apply(this, args);
-        }
-  
-        const fetchOriginal: typeof fetch = globalThis.fetch;
-  
-        try {
-          globalThis.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
-            const start = performance.now();
-            try {
-              const response = await fetchOriginal(input, init);
-              const end = performance.now();
-  
-              const log: NetworkLog = {
-                method: init?.method || 'GET',
-                url: typeof input === 'string' ? input : (input as Request).url,
-                duration: end - start,
-              };
-  
-              logFn(log);
-              return response;
-            } catch (error) {
-              const end = performance.now();
-              const log: NetworkLog = {
-                method: init?.method || 'GET',
-                url: typeof input === 'string' ? input : (input as Request).url,
-                duration: end - start,
-              };
-  
-              logFn(log);
-              throw error;
-            }
-          };
-  
-          return await originalMethod.apply(this, args);
-        } catch (error) {
-          throw error;
-        } finally {
-          globalThis.fetch = fetchOriginal; // Restore original fetch
-        }
-      };
+
+      const fetchOriginal: typeof fetch = globalThis.fetch;
+
+      if (typeof fetchOriginal !== 'function') {
+        console.warn('[Network Request] Fetch is not available in the current environment.');
+        return originalMethod.apply(this, args);
+      }
+
+      if ((fetchOriginal as any).isWrapped) {
+        return await originalMethod.apply(this, args);
+      }
+
+      try {
+        const fetchWrapper = async function (input: RequestInfo | URL, init?: RequestInit) {
+          let start: number = 0;
+          let end: number;
+
+          try {
+            start = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
+
+            const response = await fetchOriginal(input, init);
+
+            end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
+
+            // Log the request details
+            const log: NetworkLog = {
+              method: init?.method || 'GET',
+              url: typeof input === 'string' ? input : (input as Request).url,
+              duration: end - start,
+            };
+
+            logFn(log);
+            return response;
+          } catch (error) {
+            // End timing in case of error
+            end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
+
+            // Log the request details even on error
+            const log: NetworkLog = {
+              method: init?.method || 'GET',
+              url: typeof input === 'string' ? input : (input as Request).url,
+              duration: end - start,
+            };
+
+            logFn(log);
+            throw error;
+          }
+        };
+
+        (fetchWrapper as any).isWrapped = true;
+        globalThis.fetch = fetchWrapper;
+
+        return await originalMethod.apply(this, args);
+      } finally {
+        globalThis.fetch = fetchOriginal; // Restore original fetch
+      }
     };
-  }
+  };
+}
 
 export default LogNetworkRequests;
