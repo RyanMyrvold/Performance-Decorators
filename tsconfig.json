@@ -5,7 +5,7 @@
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM"],
     "outDir": "./dist",
-    "rootDir": "./src", // Adjusting to include only src in dist
+    "rootDir": "./src",
     "declaration": true,
     "strict": true,
     "esModuleInterop": true,

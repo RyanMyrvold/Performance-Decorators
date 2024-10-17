@@ -1,10 +1,19 @@
 import { getHighResolutionTime, isBrowserEnvironment, isNodeEnvironment } from '../utilities';
 
 /**
+ * Network log entry interface.
+ */
+export interface NetworkLogEntry {
+  method: string;
+  url: string;
+  duration: number;
+}
+
+/**
  * Default logging function that outputs network logs to the console.
  * @param log - The network log entry to be logged.
  */
-const defaultLogFunction: LogFunction = (log: NetworkLog) => {
+const defaultLogFunction = (log: NetworkLogEntry): void => {
   console.log(`[Network Request] Method: ${log.method}, URL: ${log.url}, Duration: ${log.duration.toFixed(2)}ms`);
 };
 
@@ -15,8 +24,8 @@ const defaultLogFunction: LogFunction = (log: NetworkLog) => {
  * @param logFn - Optional custom logging function. If not provided, logs will be printed to the console.
  * @returns A decorator function.
  */
-function LogNetworkRequests(logFn: LogFunction = defaultLogFunction) {
-  return function (originalMethod: any, context: any) {
+function LogNetworkRequests(logFn: (log: NetworkLogEntry) => void = defaultLogFunction) {
+  return function (originalMethod: Function, context: any) {
     if (typeof originalMethod !== 'function') {
       throw new Error('🐞 [Log Network Request] Can only be applied to methods.');
     }
@@ -39,7 +48,7 @@ function LogNetworkRequests(logFn: LogFunction = defaultLogFunction) {
       }
 
       try {
-        const fetchWrapper = async function (input: RequestInfo | URL, init?: RequestInit) {
+        const fetchWrapper = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
           let start: number = 0;
           let end: number;
 
@@ -51,7 +60,7 @@ function LogNetworkRequests(logFn: LogFunction = defaultLogFunction) {
             end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
 
             // Log the request details
-            const log: NetworkLog = {
+            const log: NetworkLogEntry = {
               method: init?.method || 'GET',
               url: typeof input === 'string' ? input : (input as Request).url,
               duration: end - start,
@@ -64,7 +73,7 @@ function LogNetworkRequests(logFn: LogFunction = defaultLogFunction) {
             end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
 
             // Log the request details even on error
-            const log: NetworkLog = {
+            const log: NetworkLogEntry = {
               method: init?.method || 'GET',
               url: typeof input === 'string' ? input : (input as Request).url,
               duration: end - start,

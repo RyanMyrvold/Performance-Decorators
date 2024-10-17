@@ -1,5 +1,3 @@
-// decorators/AutoRetry.ts
-
 /**
  * A decorator that automatically retries a function if it throws an error.
  * This decorator can be applied to methods in classes, allowing for the automatic
@@ -18,7 +16,7 @@
  *     // Code that might throw an error
  *   }
  * }
- * 
+ *
  * // This will automatically retry up to 5 times with a 1-second delay between attempts.
  */
 function AutoRetry(retries: number = 3, delay: number = 500) {
@@ -30,12 +28,12 @@ function AutoRetry(retries: number = 3, delay: number = 500) {
   /**
    * The method decorator that wraps the original method with retry logic.
    *
-   * @param {Method} originalMethod - The original method to be decorated.
+   * @param {(...args: any[]) => Promise<any>} originalMethod - The original method to be decorated.
    * @param {ClassMethodDecoratorContext} context - The context of the method in the class.
    * @returns {Function} A new function that wraps the original method with retry logic.
    * @throws {Error} Throws an error if applied to a non-function property.
    */
-  return function (originalMethod: Method, context: ClassMethodDecoratorContext) {
+  return function (originalMethod: (...args: any[]) => Promise<any>, context: ClassMethodDecoratorContext) {
     // Ensure the decorator is applied to a method
     if (typeof originalMethod !== "function") {
       throw new Error("🐞 [Auto Retry] Can only be applied to methods.");

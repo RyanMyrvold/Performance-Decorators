@@ -1,5 +1,14 @@
 import { isBrowserEnvironment, isNodeEnvironment } from "./SystemUtilities";
 
+/**
+ * Extends the Performance interface to include the memory property.
+ */
+export interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+  };
+}
+
 
 /**
  * Gets the memory usage based on the environment.
@@ -7,9 +16,14 @@ import { isBrowserEnvironment, isNodeEnvironment } from "./SystemUtilities";
  */
 export function getMemoryUsage(): number | undefined {
   if (isNodeEnvironment()) {
+    // Node.js environment
     return process.memoryUsage().heapUsed;
   } else if (isBrowserEnvironment()) {
-    return performance.memory?.usedJSHeapSize;
+    // Browser environment
+    const performanceWithMemory = performance as PerformanceWithMemory;
+    if (performanceWithMemory.memory) {
+      return performanceWithMemory.memory.usedJSHeapSize;
+    }
   }
   return undefined;
 }
