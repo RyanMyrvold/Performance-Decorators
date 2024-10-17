@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'async_hooks';
 import LogNetworkRequests from '../../src/debugging/LogNetworkRequests';
 
 let originalFetch: typeof globalThis.fetch;
@@ -230,7 +231,11 @@ describe('LogNetworkRequests Decorator', () => {
     }
 
     const service = new TestService();
-    await Promise.all([service.fetchData('https://example.com/1'), service.fetchData('https://example.com/2'), service.fetchData('https://example.com/3')]);
+    await Promise.all([
+      service.fetchData('https://example.com/1'),
+      service.fetchData('https://example.com/2'),
+      service.fetchData('https://example.com/3'),
+    ]);
 
     expect(logSpy).toHaveBeenCalledTimes(3);
     expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://example.com/1' }));
@@ -254,11 +259,138 @@ describe('LogNetworkRequests Decorator', () => {
     }
 
     const service = new TestService();
-    await Promise.all([service.fetchData('https://example.com/1'), service.fetchData('https://example.com/2')]);
+    await Promise.all([
+      service.fetchData('https://example.com/1'),
+      service.fetchData('https://example.com/2'),
+    ]);
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(globalThis.fetch).toBe(mockFetch); // Ensure fetch is still mocked
 
     globalThis.fetch = originalFetch; // Restore original fetch for other tests
+  });
+
+  it('should use AsyncLocalStorage to store and retrieve request context', async () => {
+    const logSpy = jest.fn();
+    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
+
+    class TestService {
+      @LogNetworkRequests(logSpy)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url);
+        const store = asyncLocalStorage.getStore();
+        if (store) {
+          store.set('url', url);
+        }
+      }
+    }
+
+    const service = new TestService();
+    await asyncLocalStorage.run(new Map(), async () => {
+      await service.fetchData('https://example.com');
+      const store = asyncLocalStorage.getStore();
+      expect(store).not.toBeNull();
+      expect(store!.get('url')).toBe('https://example.com');
+    });
+
+    expect(logSpy).toHaveBeenCalledWith({
+      method: 'GET',
+      url: 'https://example.com',
+      duration: expect.any(Number),
+    });
+  });
+
+  // New test for concurrent requests
+  it('should maintain context across multiple concurrent requests', async () => {
+    const logSpy = jest.fn();
+    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
+
+    class TestService {
+      @LogNetworkRequests(logSpy)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url);
+        const store = asyncLocalStorage.getStore();
+        if (store) {
+          store.set('url', url);
+        }
+      }
+    }
+
+    const service = new TestService();
+    await asyncLocalStorage.run(new Map(), async () => {
+      await Promise.all([
+        service.fetchData('https://example1.com'),
+        service.fetchData('https://example2.com'),
+      ]);
+      const store = asyncLocalStorage.getStore();
+      expect(store).not.toBeNull();
+    });
+
+    expect(logSpy).toHaveBeenCalledTimes(2);
+  });
+
+  // New test for error handling
+  it('should retain context on network request failure', async () => {
+    const logSpy = jest.fn();
+    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error('Network Error'));
+
+    class TestService {
+      @LogNetworkRequests(logSpy)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url);
+      }
+    }
+
+    const service = new TestService();
+    await asyncLocalStorage.run(new Map(), async () => {
+      await expect(service.fetchData('https://example.com')).rejects.toThrow('Network Error');
+      const store = asyncLocalStorage.getStore();
+      expect(store).not.toBeNull();
+    });
+
+    expect(logSpy).toHaveBeenCalledWith({
+      method: 'GET',
+      url: 'https://example.com',
+      duration: expect.any(Number),
+    });
+  });
+
+  // New test for nested async calls
+  it('should maintain context in nested asynchronous calls', async () => {
+    const logSpy = jest.fn();
+    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
+    globalThis.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue({}),
+    });
+
+    class TestService {
+      @LogNetworkRequests(logSpy)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url);
+        const store = asyncLocalStorage.getStore();
+        if (store) {
+          store.set('url', url);
+        }
+      }
+
+      async nestedCall(url: string): Promise<void> {
+        await this.fetchData(url);
+      }
+    }
+
+    const service = new TestService();
+    await asyncLocalStorage.run(new Map(), async () => {
+      await service.nestedCall('https://example.com');
+      const store = asyncLocalStorage.getStore();
+      expect(store).not.toBeNull();
+      expect(store!.get('url')).toBe('https://example.com');
+    });
+
+    expect(logSpy).toHaveBeenCalledWith({
+      method: 'GET',
+      url: 'https://example.com',
+      duration: expect.any(Number),
+    });
   });
 });

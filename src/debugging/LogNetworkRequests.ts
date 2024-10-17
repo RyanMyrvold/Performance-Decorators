@@ -17,6 +17,17 @@ const defaultLogFunction = (log: NetworkLogEntry): void => {
   console.log(`[Network Request] Method: ${log.method}, URL: ${log.url}, Duration: ${log.duration.toFixed(2)}ms`);
 };
 
+let AsyncLocalStorage: typeof import('async_hooks').AsyncLocalStorage | null = null;
+
+async function loadAsyncLocalStorage() {
+  if (isNodeEnvironment()) {
+    const asyncHooks = await import('async_hooks');
+    AsyncLocalStorage = asyncHooks.AsyncLocalStorage;
+  }
+}
+
+loadAsyncLocalStorage(); // Load AsyncLocalStorage if in Node environment
+
 /**
  * @description A decorator to log network requests made within the decorated method.
  * It logs the HTTP method, URL, and the duration of each request.
@@ -47,49 +58,73 @@ function LogNetworkRequests(logFn: (log: NetworkLogEntry) => void = defaultLogFu
         return await originalMethod.apply(this, args);
       }
 
-      try {
-        const fetchWrapper = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-          let start: number = 0;
-          let end: number;
+      const fetchWrapper = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+        let start: number = 0;
+        let end: number;
 
-          try {
-            start = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
+        try {
+          start = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
 
-            const response = await fetchOriginal(input, init);
+          const response = await fetchOriginal(input, init);
 
-            end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
+          end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
 
-            // Log the request details
-            const log: NetworkLogEntry = {
-              method: init?.method || 'GET',
-              url: typeof input === 'string' ? input : (input as Request).url,
-              duration: end - start,
-            };
+          const log: NetworkLogEntry = {
+            method: init?.method || 'GET',
+            url: typeof input === 'string' ? input : (input as Request).url,
+            duration: end - start,
+          };
 
-            logFn(log);
-            return response;
-          } catch (error) {
-            // End timing in case of error
-            end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
-
-            // Log the request details even on error
-            const log: NetworkLogEntry = {
-              method: init?.method || 'GET',
-              url: typeof input === 'string' ? input : (input as Request).url,
-              duration: end - start,
-            };
-
-            logFn(log);
-            throw error;
+          if (AsyncLocalStorage) {
+            const store = AsyncLocalStorage?.prototype.getStore.call(AsyncLocalStorage);
+            if (store) {
+              store.set('url', log.url);
+            }
           }
-        };
 
-        (fetchWrapper as any).isWrapped = true;
+          logFn(log);
+          return response;
+        } catch (error) {
+          end = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
+
+          const log: NetworkLogEntry = {
+            method: init?.method || 'GET',
+            url: typeof input === 'string' ? input : (input as Request).url,
+            duration: end - start,
+          };
+
+          if (AsyncLocalStorage) {
+            const store = AsyncLocalStorage!.prototype.getStore.call(AsyncLocalStorage);
+            if (store) {
+              store.set('url', log.url);
+            }
+          }
+
+          logFn(log);
+          throw error;
+        }
+      };
+
+      (fetchWrapper as any).isWrapped = true;
+
+      if (isNodeEnvironment() && AsyncLocalStorage) {
+        const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
+
+        return asyncLocalStorage.run(new Map(), async () => {
+          globalThis.fetch = fetchWrapper;
+          try {
+            return await originalMethod.apply(this, args);
+          } finally {
+            globalThis.fetch = fetchOriginal;
+          }
+        });
+      } else {
         globalThis.fetch = fetchWrapper;
-
-        return await originalMethod.apply(this, args);
-      } finally {
-        globalThis.fetch = fetchOriginal; // Restore original fetch
+        try {
+          return await originalMethod.apply(this, args);
+        } finally {
+          globalThis.fetch = fetchOriginal;
+        }
       }
     };
   };
