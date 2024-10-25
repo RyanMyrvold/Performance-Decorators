@@ -15,9 +15,4 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm run test -- --json --outputFile=test-results.json
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: test-results.json
+      - run: npm run test
