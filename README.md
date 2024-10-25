@@ -2,9 +2,10 @@
 
 Elevate your application's performance with Performance Decorators! This TypeScript library provides powerful tools for seamless performance monitoring and optimization in both Node.js and browser environments. Simplify the task of identifying performance bottlenecks and ensure your applications run efficiently with our easy-to-use decorators.
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/RyanMyrvold/Performance-Decorators?style=social)](https://github.com/RyanMyrvold/Performance-Decorators/stargazers)
+![Unit Tests](https://github.com/RyanMyrvold/Performance-Decorators/actions/workflows/npm-test.yml/badge.svg)
 [![npm](https://img.shields.io/npm/v/performance-decorators)](NPM)
 [![GitHub Issues](https://img.shields.io/github/issues/RyanMyrvold/Performance-Decorators)](Issues)
+[![GitHub Repo stars](https://img.shields.io/github/stars/RyanMyrvold/Performance-Decorators?style=social)](https://github.com/RyanMyrvold/Performance-Decorators/stargazers)
 
 ## 🌟 Features
 
