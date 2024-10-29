@@ -4,6 +4,7 @@ Elevate your application's performance with Performance Decorators! This TypeScr
 
 [![Unit Tests](https://github.com/RyanMyrvold/Performance-Decorators/actions/workflows/npm-test.yml/badge.svg)](https://github.com/RyanMyrvold/Performance-Decorators/actions/workflows/npm-test.yml)
 [![npm](https://img.shields.io/npm/v/performance-decorators)](https://www.npmjs.com/package/performance-decorators)
+![npm](https://img.shields.io/npm/dm/performance-decorators)
 [![GitHub Issues](https://img.shields.io/github/issues/RyanMyrvold/Performance-Decorators)](https://github.com/RyanMyrvold/Performance-Decorators/issues)
 [![GitHub Repo stars](https://img.shields.io/github/stars/RyanMyrvold/Performance-Decorators?style=social)](https://github.com/RyanMyrvold/Performance-Decorators/stargazers)
 
