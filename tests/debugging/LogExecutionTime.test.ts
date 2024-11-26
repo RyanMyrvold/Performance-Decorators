@@ -1,4 +1,4 @@
-import {LogExecutionTime} from '../../src/debugging';
+import { LogExecutionTime} from '../../src/debugging/LogExecutionTime';
 import { calculateTimeInMilliseconds, getHighResolutionTime } from '../../src/utilities';
 
 

@@ -25,6 +25,7 @@ describe('Time Utilities', () => {
   const setBrowserEnvironment = () => {
     global.window = {
       performance: { now: () => 1234.56 },
+      navigator: {},
       document: {},
     } as any;
     delete (global as any).process;

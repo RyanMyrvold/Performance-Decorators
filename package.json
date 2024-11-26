@@ -1,29 +1,29 @@
 {
   "name": "performance-decorators",
-  "version": "2.9.5",
+  "version": "3.0.0",
   "description": "A set of decorators to help with performance testing",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest"
   },
+  "files": [
+    "dist/**/*"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./debugging": {
-      "types": "./dist/debugging/index.d.ts",
-      "import": "./dist/debugging/index.js"
-    },
     "./optimization": {
       "types": "./dist/optimization/index.d.ts",
       "import": "./dist/optimization/index.js"
     },
-    "./utilities": {
-      "types": "./dist/utilities/index.d.ts",
-      "import": "./dist/utilities/index.js"
+    "./debugging": {
+      "types": "./dist/debugging/index.d.ts",
+      "import": "./dist/debugging/index.js"
     }
   },
   "repository": {
@@ -37,7 +37,6 @@
     "performance",
     "decorators",
     "testing",
-    "debugging",
     "optimization",
     "lazy-loading",
     "performance-analysis"
@@ -45,11 +44,10 @@
   "author": "Ryan Myrvold",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "*",
-    "@types/node": "^22.5.0",
-    "jest": "*",
-    "ts-jest": "*",
-    "ts-node": "*",
-    "typescript": "*"
+    "@types/jest": ">=29.5.14",
+    "@types/node": ">=22.9.4",
+    "jest": ">=29.7.0",
+    "ts-jest": ">=29.2.5",
+    "typescript": ">=5.7.2"
   }
 }

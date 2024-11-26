@@ -9,7 +9,7 @@ import { getMemoryUsage, isNodeEnvironment } from "../utilities";
  * @param logger - Logging function to use for warnings.
  * @param enableManualGC - Enables manual garbage collection in Node.js (requires --expose-gc flag).
  */
-function WarnMemoryLeak(
+export function WarnMemoryLeak(
   checkIntervalMs: number = 30000,
   thresholdPercent: number = 20,
   logger: (msg: string) => void = console.warn,
@@ -62,5 +62,3 @@ function WarnMemoryLeak(
     };
   };
 }
-
-export default WarnMemoryLeak;

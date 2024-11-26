@@ -1,4 +1,4 @@
-import LogMemoryUsage from '../../src/debugging/LogMemoryUsage';
+import { LogMemoryUsage } from '../../src/debugging/LogMemoryUsage';
 import { getMemoryUsage } from '../../src/utilities/MemoryUtilities';
 
 jest.mock('../../src/utilities/MemoryUtilities', () => ({

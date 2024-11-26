@@ -19,7 +19,7 @@
  *
  * // This will automatically retry up to 5 times with a 1-second delay between attempts.
  */
-function AutoRetry(retries: number = 3, delay: number = 500) {
+export function AutoRetry(retries: number = 3, delay: number = 500) {
   // Ensure retries and delay are non-negative
   if (retries < 0 || delay < 0) {
     throw new Error("🚨 [Auto Retry] Retries and delay must be non-negative.");
@@ -70,5 +70,3 @@ function AutoRetry(retries: number = 3, delay: number = 500) {
     };
   };
 }
-
-export default AutoRetry;

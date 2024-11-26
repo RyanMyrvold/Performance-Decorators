@@ -7,7 +7,7 @@ import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities
  * @param handler - A custom handler function that takes the execution time and method name as parameters.
  * @returns MethodDecorator
  */
-function LogExecutionTime(handler?: (executionTime: number, methodName: string) => void) {
+export function LogExecutionTime(handler?: (executionTime: number, methodName: string) => void) {
 
   return function (originalMethod: any, context: any) {
 
@@ -18,7 +18,7 @@ function LogExecutionTime(handler?: (executionTime: number, methodName: string) 
     return function (this: any, ...args: any[]) {
       let start: number | bigint;
       let end: number | bigint = 0; // Initialize 'end' variable with a default value
-      
+
       try {
         if (isBrowserEnvironment()) {
           start = performance.now();
@@ -68,5 +68,3 @@ function LogExecutionTime(handler?: (executionTime: number, methodName: string) 
     };
   };
 }
-
-export default LogExecutionTime;

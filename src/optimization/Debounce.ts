@@ -9,18 +9,18 @@
  * @param delay The number of milliseconds to delay; if zero or unspecified, a default of 300ms is used. The delay cannot be negative.
  * @returns MethodDecorator
  */
-function Debounce(delay: number = 300) {
+export function Debounce(delay: number = 300) {
     if (delay < 0) {
       throw new Error("🐞 [Debounce] Delay must be non-negative.");
     }
-  
+
     return function (originalMethod: Function, context: ClassMethodDecoratorContext) {
       if (typeof originalMethod !== "function") {
         throw new Error("🐞 [Debounce] Can only be applied to method declarations.");
       }
-  
+
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  
+
       return function (this: any, ...args: any[]) {
         const promiseExecutor = (
           resolve: (value?: any) => void,
@@ -29,7 +29,7 @@ function Debounce(delay: number = 300) {
           if (timeoutId) {
             clearTimeout(timeoutId);
           }
-  
+
           timeoutId = setTimeout(() => {
             try {
               const result = originalMethod.apply(this, args);
@@ -44,11 +44,8 @@ function Debounce(delay: number = 300) {
             }
           }, delay);
         };
-  
+
         return new Promise(promiseExecutor);
       };
     };
   }
-  
-  export default Debounce;
-  

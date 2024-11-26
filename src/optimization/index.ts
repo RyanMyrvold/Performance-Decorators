@@ -1,5 +1,5 @@
-export { default as AutoRetry } from './AutoRetry';
-export { default as Debounce } from './Debounce';
-export { default as LazyLoad } from './LazyLoad';
-export { default as Memoize } from './Memoize';
-export { default as Throttle } from './Throttle';
+export { AutoRetry } from './AutoRetry';
+export { Debounce } from './Debounce';
+export { LazyLoad } from './LazyLoad';
+export { Memoize } from './Memoize';
+export { Throttle } from './Throttle';

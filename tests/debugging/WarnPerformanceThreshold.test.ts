@@ -1,4 +1,4 @@
-import { WarnPerformanceThreshold } from '../../src/debugging';
+import { WarnPerformanceThreshold } from '../../src/debugging/WarnPerformanceThreshold';
 
 class TestClass {
   @WarnPerformanceThreshold(50)

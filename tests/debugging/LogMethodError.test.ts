@@ -1,4 +1,4 @@
-import LogMethodError from '../../src/debugging/LogMethodError';
+import { LogMethodError } from '../../src/debugging/LogMethodError';
 
 describe('LogMethodError Decorator', () => {
   let errorHandler: jest.Mock;

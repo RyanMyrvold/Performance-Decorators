@@ -6,10 +6,10 @@
  *                             the execution time and method name as parameters.
  * @returns MethodDecorator
  */
-function WarnPerformanceThreshold(threshold: number = 100, performanceHandler?: (executionTime: number, methodName: string) => void) {
+export function WarnPerformanceThreshold(threshold: number = 100, performanceHandler?: (executionTime: number, methodName: string) => void) {
 
   return function (originalMethod: Function, context: { kind: string, name: string | symbol }) {
-    
+
     if (typeof originalMethod !== "function") {
       throw new Error("🐞 [Performance Threshold] Can only be applied to methods.");
     }
@@ -54,5 +54,3 @@ function WarnPerformanceThreshold(threshold: number = 100, performanceHandler?: 
     };
   };
 }
-
-export default WarnPerformanceThreshold;

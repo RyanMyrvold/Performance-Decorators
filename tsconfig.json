@@ -1,25 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES5",
     "module": "ESNext",
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "strict": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,                              // Enable strict type-checking
+    "experimentalDecorators": false,              // Enable decorators
+    "emitDecoratorMetadata": false,              // Deprecated in new decorators
+    "useDefineForClassFields": true,             // Recommended for new decorators
     "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "experimentalDecorators": false,
-    "emitDecoratorMetadata": false,
-    "useDefineForClassFields": false,
-    "baseUrl": "./src",
-    "paths": {
-      "performance-decorators/*": ["./*"]
-    }
+    "skipLibCheck": true,
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "tests"]
 }

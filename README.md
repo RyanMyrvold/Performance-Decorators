@@ -294,8 +294,6 @@ console.log(calculator.fibonacci(10)); // Cached result
 ```typescript
 import { Throttle } from "performance-decorators/optimization";
 
-
-
 class ScrollHandler {
   @Throttle(100)
   onScroll(event: Event) {
@@ -317,4 +315,4 @@ Contributions are welcome! Please refer to the project's style and contribution 
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

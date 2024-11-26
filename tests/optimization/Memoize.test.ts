@@ -1,4 +1,4 @@
-import Memoize from "../../src/optimization/Memoize";
+import { Memoize } from "../../src/optimization/Memoize";
 
 describe('Memoize Decorator', () => {
   class TestClass {

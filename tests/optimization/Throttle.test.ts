@@ -1,4 +1,4 @@
-import Throttle from "../../src/optimization/Throttle";
+import { Throttle } from "../../src/optimization/Throttle";
 
 class TestClass {
   callCount = 0;

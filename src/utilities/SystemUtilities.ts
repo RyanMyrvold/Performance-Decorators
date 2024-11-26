@@ -1,43 +1,30 @@
 /**
- * Determines if the current runtime environment is Node.js based on the presence of process and hrtime.
+ * Determines if the current runtime environment is Node.js.
  * @returns True if the current environment is Node.js, otherwise false.
  */
 export function isNodeEnvironment(): boolean {
-    console.log("Checking Node environment...");
-    console.log("process:", typeof process !== "undefined" ? process : "undefined");
-  
-    if (typeof process === "undefined") {
-      return false;
-    }
-  
-    console.log("process.versions:", process.versions);
-    console.log("process.hrtime:", process.hrtime);
-  
+  // Check if 'process' exists and is an object
+  if (typeof process !== 'undefined' && process !== null && typeof process === 'object') {
+    // Check for Node.js specific properties
     return (
-      typeof process.versions === "object" &&
-      typeof process.versions.node !== "undefined" &&
-      typeof process.hrtime === "function" &&
-      typeof process.hrtime.bigint === "function"
+      process.release?.name === 'node' &&
+      typeof process.versions?.node === 'string'
     );
   }
-  
-  /**
-   * Determines if the current runtime environment is a browser based on the presence of the performance API.
-   * @returns True if the current environment is a browser, otherwise false.
-   */
-  export function isBrowserEnvironment(): boolean {
-    return (
-      typeof window !== "undefined" &&
-      typeof window.document !== "undefined" &&
-      typeof window.performance !== "undefined" &&
-      typeof window.performance.now === "function"
-    );
-  }
+  return false;
+}
 
-
-
-
-
-
-
-
+/**
+ * Determines if the current runtime environment is a browser.
+ * @returns True if the current environment is a browser, otherwise false.
+ */
+export function isBrowserEnvironment(): boolean {
+  // Check if 'window' exists and is an object
+  return (
+    typeof window !== 'undefined' &&
+    window !== null &&
+    typeof window === 'object' &&
+    typeof window.document === 'object' &&
+    typeof window.navigator === 'object'
+  );
+}

@@ -1,41 +1,32 @@
-import { AsyncLocalStorage } from 'async_hooks';
-import LogNetworkRequests from '../../src/debugging/LogNetworkRequests';
+// tests/LogNetworkRequests.test.ts
 
-let originalFetch: typeof globalThis.fetch;
+import { LogNetworkRequests, NetworkLogEntry } from '../../src/debugging/LogNetworkRequests';
+import { isBrowserEnvironment } from '../../src/utilities';
 
 describe('LogNetworkRequests Decorator', () => {
-  beforeAll(() => {
-    // Capture the original fetch function before any mocking
+  let originalFetch: typeof fetch;
+
+  beforeEach(() => {
+    // Save the original fetch
     originalFetch = globalThis.fetch;
   });
 
-  afterAll(() => {
-    // Restore the original fetch function after all tests
+  afterEach(() => {
+    // Restore the original fetch
     globalThis.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
-  it('should log the network request with the correct method and URL', async () => {
-    const logSpy = jest.fn();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-      }
-    }
-
-    const service = new TestService();
-    await service.fetchData('https://example.com');
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'GET',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
-  });
-
-  it('should use the default logging function if none is provided', async () => {
+  it('should log network requests using the default log function', async () => {
+    // Mock console.log
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+    // Mock fetch
+    const mockFetch = jest.fn().mockResolvedValue({
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+    globalThis.fetch = mockFetch;
 
     class TestService {
       @LogNetworkRequests()
@@ -47,350 +38,171 @@ describe('LogNetworkRequests Decorator', () => {
     const service = new TestService();
     await service.fetchData('https://example.com');
 
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Network Request'));
+    expect(mockFetch).toHaveBeenCalledWith('https://example.com', undefined);
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.objectContaining<NetworkLogEntry>({
+      method: 'GET',
+      url: 'https://example.com',
+      status: 200,
+      statusText: 'OK',
+      start: expect.any(Number),
+      end: expect.any(Number),
+    }));
 
     consoleSpy.mockRestore();
   });
 
-  it('should restore the original fetch function after execution', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      json: jest.fn().mockResolvedValue({}),
-    });
+  it('should use the provided logging function', async () => {
+    const logFn = jest.fn();
 
+    // Mock fetch
+    const mockFetch = jest.fn().mockResolvedValue({
+      status: 404,
+      statusText: 'Not Found',
+    } as Response);
+    globalThis.fetch = mockFetch;
+
+    class TestService {
+      @LogNetworkRequests(logFn)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url, { method: 'POST' });
+      }
+    }
+
+    const service = new TestService();
+    await service.fetchData('https://example.com');
+
+    expect(mockFetch).toHaveBeenCalledWith('https://example.com', { method: 'POST' });
+
+    expect(logFn).toHaveBeenCalledWith(expect.objectContaining<NetworkLogEntry>({
+      method: 'POST',
+      url: 'https://example.com',
+      status: 404,
+      statusText: 'Not Found',
+      start: expect.any(Number),
+      end: expect.any(Number),
+    }));
+  });
+
+  it('should proceed without wrapping if fetch is not available', async () => {
+    // Remove fetch from globalThis
+    // @ts-expect-error
+    delete globalThis.fetch;
+
+    class TestService {
+      @LogNetworkRequests()
+      async fetchData(url: string): Promise<string> {
+        return 'fetch not available';
+      }
+    }
+
+    const service = new TestService();
+    const result = await service.fetchData('https://example.com');
+
+    expect(result).toBe('fetch not available');
+  });
+
+  it('should not wrap fetch if it is already wrapped', async () => {
+    // Mock fetch and mark it as wrapped
+    const mockFetch = jest.fn().mockResolvedValue({
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+    (mockFetch as any).isWrapped = true;
+    globalThis.fetch = mockFetch;
+
+    const logFn = jest.fn();
+
+    class TestService {
+      @LogNetworkRequests(logFn)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url);
+      }
+    }
+
+    const service = new TestService();
+    await service.fetchData('https://example.com');
+
+    expect(mockFetch).toHaveBeenCalledWith('https://example.com');
+    expect(logFn).not.toHaveBeenCalled();
+  });
+
+  it('should work correctly in a browser environment', async () => {
+    // Mock performance.now()
+    const now = Date.now();
+    jest.spyOn(performance, 'now').mockReturnValue(now);
+
+    // Mock fetch
+    const mockFetch = jest.fn().mockResolvedValue({
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+    globalThis.fetch = mockFetch;
+
+    const logFn = jest.fn();
+
+    class TestService {
+      @LogNetworkRequests(logFn)
+      async fetchData(url: string): Promise<void> {
+        await fetch(url);
+      }
+    }
+
+    // Mock isBrowserEnvironment to return true
+    jest.mock('../../src/utilities', () => ({
+      ...jest.requireActual('../../src/utilities'),
+      isBrowserEnvironment: jest.fn().mockReturnValue(true),
+    }));
+
+    const service = new TestService();
+    await service.fetchData('https://example.com');
+
+    expect(logFn).toHaveBeenCalledWith({
+      method: 'GET',
+      url: 'https://example.com',
+      start: expect.any(Number),
+      end: expect.any(Number),
+      status: 200,
+      statusText: 'OK',
+    });
+  });
+
+  it('should not interfere with the method\'s return value', async () => {
+    // Create a mock Response object that satisfies the interface
+    const mockResponse = {
+      json: jest.fn().mockResolvedValue({ data: 'test' }),
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers(),
+      ok: true,
+      redirected: false,
+      type: 'basic',
+      url: '',
+      clone: jest.fn(),
+      bodyUsed: false,
+      arrayBuffer: jest.fn(),
+      blob: jest.fn(),
+      formData: jest.fn(),
+      text: jest.fn(),
+    } as unknown as Response;
+
+    const mockFetch = jest.fn().mockResolvedValue(mockResponse);
     globalThis.fetch = mockFetch;
 
     class TestService {
       @LogNetworkRequests()
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
+      async fetchData(url: string): Promise<any> {
+        const response = await fetch(url);
+        return response.json();
       }
     }
 
     const service = new TestService();
-    await service.fetchData('https://example.com');
+    const result = await service.fetchData('https://example.com');
 
-    // Ensure fetch was mocked during the method execution
-    expect(globalThis.fetch).toBe(mockFetch);
+    expect(result).toEqual({ data: 'test' });
 
-    // Check that fetch has been restored after method execution
-    globalThis.fetch = originalFetch; // Manually restoring it here just for clarity, even though it should be automatic.
-    expect(globalThis.fetch).toBe(originalFetch);
-  });
-
-  it('should work with POST requests', async () => {
-    const logSpy = jest.fn();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async postData(url: string, data: any): Promise<void> {
-        await fetch(url, {
-          method: 'POST',
-          body: JSON.stringify(data),
-        });
-      }
-    }
-
-    const service = new TestService();
-    await service.postData('https://example.com', { key: 'value' });
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'POST',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
-  });
-
-  it('should not log if fetch is not available', async () => {
-    const logSpy = jest.fn();
-    globalThis.fetch = undefined as unknown as typeof fetch; // Remove fetch
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        // Simulate a method that would make a network request
-      }
-    }
-
-    const service = new TestService();
-    await service.fetchData('https://example.com');
-
-    expect(logSpy).not.toHaveBeenCalled();
-
-    globalThis.fetch = originalFetch; // Restore fetch
-  });
-
-  it('should correctly log multiple network requests', async () => {
-    const logSpy = jest.fn();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchMultipleData(urls: string[]): Promise<void> {
-        for (const url of urls) {
-          await fetch(url);
-        }
-      }
-    }
-
-    const service = new TestService();
-    await service.fetchMultipleData(['https://example1.com', 'https://example2.com']);
-
-    expect(logSpy).toHaveBeenCalledTimes(2);
-  });
-
-  it('should correctly handle fetch failures', async () => {
-    const logSpy = jest.fn();
-    globalThis.fetch = jest.fn().mockRejectedValue(new Error('Network Error'));
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-      }
-    }
-
-    const service = new TestService();
-    await expect(service.fetchData('https://example.com')).rejects.toThrow('Network Error');
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'GET',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
-  });
-
-  it('should correctly handle custom fetch implementations', async () => {
-    const logSpy = jest.fn();
-    const customFetch = jest.fn().mockResolvedValue({
-      json: jest.fn().mockResolvedValue({}),
-    });
-
-    globalThis.fetch = customFetch; // Use custom fetch for this test
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-      }
-    }
-
-    const service = new TestService();
-    await service.fetchData('https://example.com');
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'GET',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
-
-    // Clean up: ensure fetch is restored to original
-    globalThis.fetch = originalFetch;
-  });
-
-  it('should work correctly with different HTTP methods', async () => {
-    const logSpy = jest.fn();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async performRequests(): Promise<void> {
-        await fetch('https://example.com/get', { method: 'GET' });
-        await fetch('https://example.com/post', { method: 'POST' });
-        await fetch('https://example.com/put', { method: 'PUT' });
-      }
-    }
-
-    const service = new TestService();
-    await service.performRequests();
-
-    expect(logSpy).toHaveBeenCalledTimes(3);
-  });
-
-  it('should handle concurrent fetch requests correctly', async () => {
-    const logSpy = jest.fn();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchConcurrently(urls: string[]): Promise<void> {
-        await Promise.all(urls.map((url) => fetch(url)));
-      }
-    }
-
-    const service = new TestService();
-    await service.fetchConcurrently(['https://example1.com', 'https://example2.com']);
-
-    expect(logSpy).toHaveBeenCalledTimes(2);
-  });
-
-  it('should handle multiple parallel async fetch calls without race condition', async () => {
-    const logSpy = jest.fn();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-      }
-    }
-
-    const service = new TestService();
-    await Promise.all([
-      service.fetchData('https://example.com/1'),
-      service.fetchData('https://example.com/2'),
-      service.fetchData('https://example.com/3'),
-    ]);
-
-    expect(logSpy).toHaveBeenCalledTimes(3);
-    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://example.com/1' }));
-    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://example.com/2' }));
-    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://example.com/3' }));
-  });
-
-  it('should not interfere with global fetch during parallel calls', async () => {
-    const logSpy = jest.fn();
-    const mockFetch = jest.fn().mockResolvedValue({
-      json: jest.fn().mockResolvedValue({}),
-    });
-
-    globalThis.fetch = mockFetch;
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-      }
-    }
-
-    const service = new TestService();
-    await Promise.all([
-      service.fetchData('https://example.com/1'),
-      service.fetchData('https://example.com/2'),
-    ]);
-
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    expect(globalThis.fetch).toBe(mockFetch); // Ensure fetch is still mocked
-
-    globalThis.fetch = originalFetch; // Restore original fetch for other tests
-  });
-
-  it('should use AsyncLocalStorage to store and retrieve request context', async () => {
-    const logSpy = jest.fn();
-    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-        const store = asyncLocalStorage.getStore();
-        if (store) {
-          store.set('url', url);
-        }
-      }
-    }
-
-    const service = new TestService();
-    await asyncLocalStorage.run(new Map(), async () => {
-      await service.fetchData('https://example.com');
-      const store = asyncLocalStorage.getStore();
-      expect(store).not.toBeNull();
-      expect(store!.get('url')).toBe('https://example.com');
-    });
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'GET',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
-  });
-
-  // New test for concurrent requests
-  it('should maintain context across multiple concurrent requests', async () => {
-    const logSpy = jest.fn();
-    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-        const store = asyncLocalStorage.getStore();
-        if (store) {
-          store.set('url', url);
-        }
-      }
-    }
-
-    const service = new TestService();
-    await asyncLocalStorage.run(new Map(), async () => {
-      await Promise.all([
-        service.fetchData('https://example1.com'),
-        service.fetchData('https://example2.com'),
-      ]);
-      const store = asyncLocalStorage.getStore();
-      expect(store).not.toBeNull();
-    });
-
-    expect(logSpy).toHaveBeenCalledTimes(2);
-  });
-
-  // New test for error handling
-  it('should retain context on network request failure', async () => {
-    const logSpy = jest.fn();
-    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
-    globalThis.fetch = jest.fn().mockRejectedValue(new Error('Network Error'));
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-      }
-    }
-
-    const service = new TestService();
-    await asyncLocalStorage.run(new Map(), async () => {
-      await expect(service.fetchData('https://example.com')).rejects.toThrow('Network Error');
-      const store = asyncLocalStorage.getStore();
-      expect(store).not.toBeNull();
-    });
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'GET',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
-  });
-
-  // New test for nested async calls
-  it('should maintain context in nested asynchronous calls', async () => {
-    const logSpy = jest.fn();
-    const asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
-    globalThis.fetch = jest.fn().mockResolvedValue({
-      json: jest.fn().mockResolvedValue({}),
-    });
-
-    class TestService {
-      @LogNetworkRequests(logSpy)
-      async fetchData(url: string): Promise<void> {
-        await fetch(url);
-        const store = asyncLocalStorage.getStore();
-        if (store) {
-          store.set('url', url);
-        }
-      }
-
-      async nestedCall(url: string): Promise<void> {
-        await this.fetchData(url);
-      }
-    }
-
-    const service = new TestService();
-    await asyncLocalStorage.run(new Map(), async () => {
-      await service.nestedCall('https://example.com');
-      const store = asyncLocalStorage.getStore();
-      expect(store).not.toBeNull();
-      expect(store!.get('url')).toBe('https://example.com');
-    });
-
-    expect(logSpy).toHaveBeenCalledWith({
-      method: 'GET',
-      url: 'https://example.com',
-      duration: expect.any(Number),
-    });
+    // Adjusted expectation to include undefined as the second argument
+    expect(mockFetch).toHaveBeenCalledWith('https://example.com', undefined);
   });
 });

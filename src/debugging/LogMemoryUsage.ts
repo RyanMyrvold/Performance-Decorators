@@ -6,7 +6,7 @@ import { getMemoryUsage } from "../utilities/MemoryUtilities";
  * @param memoryHandler - An optional custom memory handler function that takes the memory usage data and method name as parameters.
  * @returns MethodDecorator
  */
-function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string) => void) {
+export function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string) => void) {
   return function (originalMethod: any, context: any) {
     if (typeof originalMethod !== "function") {
       throw new Error("🐞 [LogMemoryUsage] Can only be applied to methods.");
@@ -47,5 +47,3 @@ function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string)
     };
   };
 }
-
-export default LogMemoryUsage;

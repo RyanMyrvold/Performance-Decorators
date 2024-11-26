@@ -1,5 +1,5 @@
 // tests/AutoRetry.test.ts
-import {AutoRetry } from '../../src/optimization';
+import { AutoRetry } from '../../src/optimization';
 
 class TestClass {
   private attempts = 0;

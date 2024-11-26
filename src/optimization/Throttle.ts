@@ -6,7 +6,7 @@
  * @param delay The number of milliseconds to limit the method calls.
  * @returns MethodDecorator
  */
-function Throttle(delay: number = 300) {
+export function Throttle(delay: number = 300) {
   if (delay < 0) {
     throw new Error("🚨 [Throttle] Delay must be non-negative.");
   }
@@ -40,5 +40,3 @@ function Throttle(delay: number = 300) {
     };
   };
 }
-
-export default Throttle;

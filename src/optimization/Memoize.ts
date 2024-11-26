@@ -4,7 +4,7 @@
  *
  * @returns MethodDecorator
  */
-function Memoize() {
+export function Memoize() {
   return function (originalMethod: Function, context: ClassMethodDecoratorContext) {
     const cacheSymbol = Symbol(`Memoize Cache: ${String(context.name)}`);
 
@@ -26,5 +26,3 @@ function Memoize() {
     };
   };
 }
-
-export default Memoize;

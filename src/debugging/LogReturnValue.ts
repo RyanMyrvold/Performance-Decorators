@@ -4,7 +4,7 @@
  * @param logFn - An optional custom logging function that takes the return value and method name as parameters. Defaults to console.log.
  * @returns MethodDecorator
  */
-function LogReturnValue(logFn: (value: any, methodName: string) => void = console.log) {
+export function LogReturnValue(logFn: (value: any, methodName: string) => void = console.log) {
     /**
      * Logs the return value using the provided logging function or the default console.log.
      * @param returnValue - The value returned by the method.
@@ -17,16 +17,16 @@ function LogReturnValue(logFn: (value: any, methodName: string) => void = consol
         console.log(`📝 [Log Return Value] ${methodName} returned:`, returnValue);
       }
     }
-  
+
     return function (originalMethod: any, context: any) {
       if (typeof originalMethod !== "function") {
         throw new Error("🐞 [Log Return Value] Can only be applied to methods.");
       }
-  
+
       return function (this: any, ...args: any[]) {
         try {
           const result = originalMethod.apply(this, args);
-  
+
           if (result instanceof Promise) {
             return result.then((resolvedValue: any) => {
               logReturnValue(resolvedValue, context.name);
@@ -44,6 +44,3 @@ function LogReturnValue(logFn: (value: any, methodName: string) => void = consol
       };
     };
   }
-  
-  export default LogReturnValue;
-  

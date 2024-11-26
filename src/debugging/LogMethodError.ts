@@ -4,7 +4,7 @@
  * @param errorHandler - An optional custom error handler function that takes the error and method name as parameters.
  * @returns MethodDecorator
  */
-function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, methodName: string) => void) {
+export function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, methodName: string) => void) {
   /**
    * Logs the given error using the provided error handler or console.
    * @param error - The error to log.
@@ -45,5 +45,3 @@ function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, m
     };
   };
 }
-
-export default LogMethodError;

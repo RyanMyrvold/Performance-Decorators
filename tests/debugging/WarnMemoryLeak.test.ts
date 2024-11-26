@@ -1,4 +1,4 @@
-import WarnMemoryLeak from '../../src/debugging/WarnMemoryLeak';
+import { WarnMemoryLeak } from '../../src/debugging/WarnMemoryLeak';
 import { getMemoryUsage, isNodeEnvironment } from '../../src/utilities';
 
 jest.mock('../../src/utilities');
