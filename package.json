@@ -1,12 +1,13 @@
 {
   "name": "performance-decorators",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A set of decorators to help with performance testing",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "jest"
   },
   "files": [
