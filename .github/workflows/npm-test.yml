@@ -26,5 +26,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run Jest tests
-        run: pnpm test
+      - name: Run Node tests
+        run: pnpm test:node
+
+      - name: Run Browser tests
+        run: pnpm test:browser
