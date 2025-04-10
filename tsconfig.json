@@ -1,22 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2019",                        // Updated to ES2019 for better compatibility and features
-    "module": "ESNext",                        // ESM module system, aligns with "type": "module" in package.json
+    "target": "ES2020",                        // Supports modern JS features
+    "module": "ESNext",                        // ESM module system
     "moduleResolution": "node",
-    "lib": ["ES2019", "DOM"],                  // Libraries for ES2019 and DOM APIs
-    "rootDir": "src",
-    "outDir": "dist",
-    "strict": true,                             // Enable all strict type-checking options
-    "experimentalDecorators": false,             // Enable experimental support for decorators
-    "useDefineForClassFields": true,            // Recommended for new decorators
-    "esModuleInterop": true,                    // Enables interoperability between CommonJS and ES Modules
-    "forceConsistentCasingInFileNames": true,  // Ensure consistent casing in file names
-    "skipLibCheck": true,                       // Skip type checking of declaration files
-    "declaration": true,                        // Generate .d.ts files
-    "declarationDir": "./dist",                 // Output directory for declaration files
-    "sourceMap": true,                          // (Optional) Generate source maps
-    "removeComments": false                     // (Optional) Keep comments in output files
+    "lib": ["ES2020", "DOM"],                  // Updated to ES2020 and DOM APIs
+    "strict": true,                            // Enable strict type-checking
+    "experimentalDecorators": true,           // Enable experimental decorators
+    "useDefineForClassFields": true,          // Recommended for decorators
+    "esModuleInterop": true,                  // Interoperability between CommonJS and ESM
+    "forceConsistentCasingInFileNames": true, // Prevent casing inconsistencies
+    "skipLibCheck": true,                     // Skip type checking of declaration files
+    "declaration": true,                      // Generate .d.ts files
+    "sourceMap": true,                        // Generate source maps for debugging
+    "removeComments": false                   // Retain comments in output
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/tests/*"]
+  "include": [],
+  "references": [
+    { "path": "./packages/common" },
+    { "path": "./packages/node" },
+    { "path": "./packages/browser" }
+  ]
 }

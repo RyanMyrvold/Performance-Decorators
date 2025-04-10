@@ -1,0 +1,14 @@
+{
+  "name": "@performance-decorators/node",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@performance-decorators/common": "workspace:*"
+  }
+}
