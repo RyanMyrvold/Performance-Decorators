@@ -1,33 +1,17 @@
 {
   "name": "performance-decorators",
   "version": "3.0.4",
-  "description": "A set of decorators to help with performance testing",
+  "private": true,
   "type": "module",
-  "main": "dist/index.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "npm run build",
-    "test": "jest"
+    "build": "pnpm -r run build",
+    "clean": "pnpm -r run clean",
+    "publish-all": "pnpm -r publish --filter './packages/{node,browser}' --access public"
   },
-  "files": [
-    "dist/**/*"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/RyanMyrvold/Performance-Decorators.git"
-  },
-  "keywords": [
-    "typescript",
-    "monitoring",
-    "debugging",
-    "performance",
-    "decorators",
-    "testing"
-  ],
-  "author": "Ryan Myrvold",
-  "license": "MIT",
   "devDependencies": {
-    "jest": ">=29.7.0",
-    "typescript": ">=5.7.2"
+    "typescript": "^5.3.3"
   }
 }
