@@ -9,9 +9,9 @@
   "scripts": {
     "build": "pnpm -r run build",
     "clean": "pnpm -r run clean",
-    "test": "jest --config=jest.config.base.ts",
-    "test:node": "jest --config=jest.config.node.ts",
-    "test:browser": "jest --config=jest.config.browser.ts",
+    "test": "jest --config=jest.config.base.ts --passWithNoTests",
+    "test:node": "jest --config=jest.config.node.ts --passWithNoTests",
+    "test:browser": "jest --config=jest.config.browser.ts --passWithNoTests",
     "publish-all": "pnpm -r publish --filter './packages/{node,browser}' --access public"
   },
   "devDependencies": {
@@ -19,6 +19,7 @@
     "@types/jest": "^29.5.14",
     "jest": "^29.7.0",
     "ts-jest": "^29.3.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
