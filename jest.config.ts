@@ -3,15 +3,17 @@ import type { Config } from '@jest/types';
 // Jest configuration for a TypeScript monorepo with ESM and decorators
 const config: Config.InitialOptions = {
   verbose: true,
-  preset: 'ts-jest/presets/default-esm', // Use ESM preset for compatibility with TypeScript and decorators
-  testEnvironment: 'node',              // Use 'jsdom' if testing browser-specific code
+  preset: 'ts-jest/presets/default-esm',
+  testEnvironment: 'node',
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: './tsconfig.json',       // Ensure the correct tsconfig.json is used
-      useESM: true                      // Enable ESM for TypeScript files
+      tsconfig: '<rootDir>/tsconfig.base.json',
+      useESM: true
     }]
   },
-  testRegex: '^.*/tests/.*\\.(test|spec)\\.tsx?$', // Match test files in `tests` folder
+  testMatch: [
+    '<rootDir>/packages/**/tests/**/*.(test|spec).ts'
+  ],
   moduleFileExtensions: [
     'ts',
     'tsx',
@@ -21,26 +23,27 @@ const config: Config.InitialOptions = {
     'node'
   ],
   moduleNameMapper: {
-    '^@common/(.*)$': '<rootDir>/packages/common/src/$1',  // Alias for common package
-    '^@node/(.*)$': '<rootDir>/packages/node/src/$1',      // Alias for Node.js-specific package
-    '^@browser/(.*)$': '<rootDir>/packages/browser/src/$1' // Alias for browser-specific package
+    '^@common/(.*)$': '<rootDir>/packages/common/src/$1',
+    '^@node/(.*)$': '<rootDir>/packages/node/src/$1',
+    '^@browser/(.*)$': '<rootDir>/packages/browser/src/$1'
   },
-  extensionsToTreatAsEsm: ['.ts'],        // Treat `.ts` files as ESM
+  extensionsToTreatAsEsm: ['.ts'],
   transformIgnorePatterns: [
-    '/node_modules/(?!.*\\.mjs$)'         // Transform `.mjs` files in node_modules if needed
+    '/node_modules/(?!.*\\.mjs$)'
   ],
-  collectCoverage: true,                  // Enable coverage collection
+  collectCoverage: true,
   collectCoverageFrom: [
-    'packages/**/*.{ts,tsx}',             // Collect coverage from all packages
-    '!**/node_modules/**',                // Exclude node_modules
-    '!**/dist/**'                         // Exclude build output
+    'packages/**/*.{ts,tsx}',
+    '!**/node_modules/**',
+    '!**/dist/**',
+    '!**/tests/**'
   ],
-  coverageDirectory: '<rootDir>/coverage', // Output coverage reports to a unified directory
-  setupFiles: [],                         // Add any global setup files if needed
+  coverageDirectory: '<rootDir>/coverage',
+  setupFiles: [],
   globals: {
     'ts-jest': {
-      isolatedModules: true,             // Speed up tests by avoiding full type-checking
-      diagnostics: false                 // Suppress TypeScript diagnostics during tests
+      isolatedModules: true,
+      diagnostics: false
     }
   }
 };
