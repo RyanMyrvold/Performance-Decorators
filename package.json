@@ -21,6 +21,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.3"
   }
 }
