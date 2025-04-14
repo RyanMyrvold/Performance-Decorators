@@ -9,7 +9,7 @@ const config: Config = {
   globals: {
     'ts-jest': {
       ...(baseConfig.globals?.['ts-jest'] as Record<string, unknown>),
-      tsconfig: '<rootDir>/packages/browser/tsconfig.browser.json'
+      tsconfig: '<rootDir>/packages/browser/tsconfig.json'
     }
   }
 };

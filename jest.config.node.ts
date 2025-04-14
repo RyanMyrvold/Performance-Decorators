@@ -9,7 +9,7 @@ const config: Config.InitialOptions = {
   globals: {
     'ts-jest': {
       ...(baseConfig.globals?.['ts-jest'] as Record<string, unknown>),
-      tsconfig: '<rootDir>/packages/node/tsconfig.node.json'
+      tsconfig: '<rootDir>/packages/node/tsconfig.json'
     }
   }
 };
