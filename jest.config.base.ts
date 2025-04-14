@@ -4,7 +4,6 @@ import browser from './jest.config.browser';
 
 const config: Config.InitialOptions = {
   projects: [node, browser],
-  verbose: true,
   collectCoverage: true,
   collectCoverageFrom: [
     'packages/**/*.{ts,tsx}',

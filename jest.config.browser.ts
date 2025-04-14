@@ -2,7 +2,6 @@ import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
   displayName: 'browser',
-  verbose: true,
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom',
   testMatch: ['<rootDir>/packages/browser/tests/**/*.(test|spec).ts'],

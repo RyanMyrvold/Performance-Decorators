@@ -2,7 +2,6 @@ import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
   displayName: 'node',
-  verbose: true,
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   testMatch: ['<rootDir>/packages/node/tests/**/*.(test|spec).ts'],
