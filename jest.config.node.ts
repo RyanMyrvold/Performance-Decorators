@@ -1,7 +1,7 @@
 import baseConfig from './jest.config.base';
-import type { Config } from '@jest/types';
+import type { Config } from 'jest';
 
-const config: Config.InitialOptions = {
+const config: Config = {
   ...baseConfig,
   displayName: 'node',
   testEnvironment: 'node',
