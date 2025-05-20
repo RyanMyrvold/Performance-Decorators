@@ -1,3 +1,4 @@
+// @ts-ignore
 import { LogExecutionTime } from '@browser/debugging/logExecutionTime';
 
 describe('LogExecutionTime (Browser)', () => {

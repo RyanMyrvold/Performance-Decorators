@@ -5,11 +5,9 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "@node/*": ["./src/*"],
+      "@browser/*": ["./src/*"],
       "@common/*": ["../common/src/*"]
-    },
-    "experimentalDecorators": true,
-    "useDefineForClassFields": true
+    }
   },
   "references": [
     { "path": "../common" }

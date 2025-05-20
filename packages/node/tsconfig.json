@@ -7,9 +7,7 @@
     "paths": {
       "@node/*": ["./src/*"],
       "@common/*": ["../common/src/*"]
-    },
-    "experimentalDecorators": true,
-    "useDefineForClassFields": true
+    }
   },
   "references": [
     { "path": "../common" }
