@@ -2,12 +2,18 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@node/*": ["./src/*"],
+      "@common/*": ["../common/src/*"]
+    },
+    "experimentalDecorators": true,
+    "useDefineForClassFields": true
   },
   "references": [
-    {
-      "path": "../common"
-    }
+    { "path": "../common" }
   ],
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["tests"]
 }

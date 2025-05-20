@@ -3,6 +3,8 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

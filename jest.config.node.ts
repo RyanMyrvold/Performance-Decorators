@@ -11,6 +11,11 @@ const config: Config = {
       ...(baseConfig.globals?.['ts-jest'] as Record<string, unknown>),
       tsconfig: '<rootDir>/packages/node/tsconfig.json'
     }
+  },
+  moduleNameMapper: {
+    ...baseConfig.moduleNameMapper,
+    '^@node/(.*)$': '<rootDir>/packages/node/src/$1',
+    '^@common/(.*)$': '<rootDir>/packages/common/src/$1'
   }
 };
 

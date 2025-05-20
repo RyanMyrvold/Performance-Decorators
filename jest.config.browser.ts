@@ -11,6 +11,11 @@ const config: Config = {
       ...(baseConfig.globals?.['ts-jest'] as Record<string, unknown>),
       tsconfig: '<rootDir>/packages/browser/tsconfig.json'
     }
+  },
+  moduleNameMapper: {
+    ...baseConfig.moduleNameMapper,
+    '^@browser/(.*)$': '<rootDir>/packages/browser/src/$1',
+    '^@common/(.*)$': '<rootDir>/packages/common/src/$1'
   }
 };
 

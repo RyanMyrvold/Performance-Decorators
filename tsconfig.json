@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/common" },
+    { "path": "packages/node" },
+    { "path": "packages/browser" }
+  ]
+}
