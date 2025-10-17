@@ -7,7 +7,8 @@ const config: Config.InitialOptions = {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
-        useESM: true
+        useESM: true,
+        diagnostics: false
       }
     ]
   },
@@ -21,14 +22,6 @@ const config: Config.InitialOptions = {
     '^@common/(.*)$': '<rootDir>/packages/common/src/$1',
     '^@node/(.*)$': '<rootDir>/packages/node/src/$1',
     '^@browser/(.*)$': '<rootDir>/packages/browser/src/$1'
-  },
-
-  globals: {
-    'ts-jest': {
-      useESM: true,
-      isolatedModules: true,
-      diagnostics: false
-    }
   }
 };
 
