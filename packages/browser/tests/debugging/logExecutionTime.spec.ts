@@ -1,5 +1,5 @@
 // @ts-ignore
-import { LogExecutionTime } from '@browser/debugging/logExecutionTime';
+import { LogExecutionTime } from '../../src/debugging/logExecutionTime';
 
 describe('LogExecutionTime (Browser)', () => {
   it('should return a method decorator', () => {

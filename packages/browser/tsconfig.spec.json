@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "ES2017",
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "lib": ["DOM", "DOM.Iterable", "ES2017"],
+    "types": ["jest"],
+    "isolatedModules": true
+  },
+  "include": ["tests/**/*.ts"]
+}

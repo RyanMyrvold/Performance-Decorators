@@ -1,7 +1,7 @@
 import baseConfig from './jest.config.base';
-import type { Config } from 'jest';
+import type { Config } from '@jest/types';
 
-const config: Config = {
+const config: Config.InitialOptions = {
   ...baseConfig,
   displayName: 'browser',
   testEnvironment: 'jsdom',

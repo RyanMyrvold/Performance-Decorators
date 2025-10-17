@@ -1,5 +1,5 @@
 // @ts-ignore
-import { LogMemoryUsage } from '@browser/debugging/logMemoryUsage';
+import { LogMemoryUsage } from '../../src/debugging/logMemoryUsage';
 
 class BrowserTestService {
   @LogMemoryUsage()

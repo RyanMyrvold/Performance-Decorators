@@ -1,5 +1,5 @@
 // @ts-ignore
-import { LogMemoryUsage } from '@node/debugging/logMemoryUsage';
+import { LogMemoryUsage } from '../../src/debugging/logMemoryUsage';
 
 class TestService {
   @LogMemoryUsage()

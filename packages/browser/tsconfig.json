@@ -1,13 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": ".",
-    "paths": {
-      "@browser/*": ["./src/*"],
-      "@common/*": ["../common/src/*"]
-    }
+    "target": "ES2017",
+    "module": "ES2015",
+    "lib": ["DOM", "DOM.Iterable", "ES2017"],
+    "moduleResolution": "node",
+    "types": []
   },
   "references": [
     { "path": "../common" }

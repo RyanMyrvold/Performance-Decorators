@@ -1,6 +1,6 @@
-import type { Config } from 'jest';
+import type { Config } from '@jest/types';
 
-const baseConfig: Config = {
+const config: Config.InitialOptions = {
   preset: 'ts-jest/presets/default-esm',
 
   transform: {
@@ -32,4 +32,4 @@ const baseConfig: Config = {
   }
 };
 
-export default baseConfig;
+export default config;

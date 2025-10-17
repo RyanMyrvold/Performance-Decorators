@@ -2,8 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "target": "ES2018",
+    "module": "ES2015",
+    "lib": ["ES2018"],
+    "moduleResolution": "node"
   },
   "include": ["src"]
 }
