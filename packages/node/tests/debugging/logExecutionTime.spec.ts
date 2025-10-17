@@ -1,4 +1,3 @@
-// @ts-ignore
 import { LogExecutionTime } from '../../src/debugging/logExecutionTime';
 
 describe('LogExecutionTime (Node)', () => {

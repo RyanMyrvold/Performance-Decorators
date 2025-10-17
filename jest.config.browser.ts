@@ -16,8 +16,9 @@ const browserTsJestTransform = Array.isArray(tsJestEntry)
 const config: Config.InitialOptions = {
   ...baseConfig,
   displayName: 'browser',
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
   testMatch: ['<rootDir>/packages/browser/tests/**/*.(test|spec).ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.browser.ts'],
   transform: {
     ...baseTransform,
     '^.+\\.tsx?$': browserTsJestTransform as Config.TransformerConfig

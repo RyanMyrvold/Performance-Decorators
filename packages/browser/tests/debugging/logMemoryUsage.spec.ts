@@ -1,12 +1,13 @@
-// @ts-ignore
 import { LogMemoryUsage } from '../../src/debugging/logMemoryUsage';
 
 class BrowserTestService {
+// @ts-ignore
   @LogMemoryUsage()
   cpuBound(): number[] {
     return Array(5000).fill(0).map((_, i) => i + Math.random());
   }
 
+// @ts-ignore
   @LogMemoryUsage()
   async cpuBoundAsync(): Promise<number[]> {
     return new Promise((resolve) =>

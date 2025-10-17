@@ -1,36 +1,77 @@
-/**
- * Logs the memory usage before and after the execution of a method.
- * Works only in Node.js environment using `process.memoryUsage()`.
- *
- * @returns A method decorator that logs memory usage in MB.
- */
-export function LogMemoryUsage(): MethodDecorator {
-  return function (
-    target: Object,
-    propertyKey: string | symbol,
-    descriptor: PropertyDescriptor
-  ): PropertyDescriptor {
-    const originalMethod = descriptor.value;
+type AnyFunction = (...args: unknown[]) => unknown;
 
-    descriptor.value = function (...args: unknown[]) {
-      const start = process.memoryUsage().heapUsed / 1024 / 1024;
+type Stage3DecoratorContext<T extends AnyFunction> = {
+  kind: 'method';
+  name?: string | symbol;
+} & Record<string, unknown>;
 
-      const result = originalMethod.apply(this, args);
+interface UniversalMethodDecorator {
+  <T extends AnyFunction>(value: T, context: Stage3DecoratorContext<T>): T | void;
+  <T extends AnyFunction>(target: object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+}
 
-      if (result instanceof Promise) {
-        return result.then((res) => {
-          const end = process.memoryUsage().heapUsed / 1024 / 1024;
-          console.log(`[${String(propertyKey)}] Memory used: ${(end - start).toFixed(2)} MB`);
-          return res;
-        });
-      }
+const isPromise = (value: unknown): value is Promise<unknown> => typeof value === 'object' && value !== null && typeof (value as PromiseLike<unknown>).then === 'function';
 
-      const end = process.memoryUsage().heapUsed / 1024 / 1024;
-      console.log(`[${String(propertyKey)}] Memory used: ${(end - start).toFixed(2)} MB`);
+const getHeapUsageInMb = () => process.memoryUsage().heapUsed / 1024 / 1024;
 
-      return result;
+function wrapWithMemoryLogging<T extends AnyFunction>(original: T, name: string | symbol | undefined): T {
+  const label = String(name ?? 'anonymous');
+
+  const wrapped = function (this: ThisParameterType<T>, ...args: Parameters<T>): ReturnType<T> {
+    const start = getHeapUsageInMb();
+
+    const logUsage = () => {
+      const end = getHeapUsageInMb();
+      console.log(`[${label}] Memory used: ${(end - start).toFixed(2)} MB`);
     };
 
-    return descriptor;
-  };
+    try {
+      const result = original.apply(this, args) as ReturnType<T>;
+
+      if (isPromise(result)) {
+        return result.finally(() => {
+          logUsage();
+        }) as ReturnType<T>;
+      }
+
+      logUsage();
+      return result;
+    } catch (error) {
+      logUsage();
+      throw error;
+    }
+  } as unknown as T;
+
+  return wrapped;
+}
+
+export function LogMemoryUsage(): UniversalMethodDecorator {
+  function decorator<T extends AnyFunction>(value: T, context: Stage3DecoratorContext<T>): T | void;
+  function decorator<T extends AnyFunction>(target: object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+  function decorator<T extends AnyFunction>(...args: unknown[]): unknown {
+    if (args.length === 2 && typeof args[0] === 'function') {
+      const [value, context] = args as [T, Stage3DecoratorContext<T>];
+
+      if (context.kind !== 'method') {
+        return value;
+      }
+
+      return wrapWithMemoryLogging(value, context.name);
+    }
+
+    if (args.length === 3) {
+      const [, propertyKey, descriptor] = args as [object, string | symbol, TypedPropertyDescriptor<T>];
+
+      if (!descriptor || typeof descriptor.value !== 'function') {
+        return descriptor;
+      }
+
+      descriptor.value = wrapWithMemoryLogging(descriptor.value, propertyKey);
+      return descriptor;
+    }
+
+    return undefined;
+  }
+
+  return decorator;
 }

@@ -1,12 +1,13 @@
-// @ts-ignore
 import { LogMemoryUsage } from '../../src/debugging/logMemoryUsage';
 
 class TestService {
+// @ts-ignore
   @LogMemoryUsage()
   heavySync(): number[] {
     return Array(10000).fill(0).map((_, i) => i * 2);
   }
 
+// @ts-ignore
   @LogMemoryUsage()
   async heavyAsync(): Promise<number[]> {
     return new Promise((resolve) =>

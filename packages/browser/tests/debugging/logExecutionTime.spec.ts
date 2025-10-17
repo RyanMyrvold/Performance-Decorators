@@ -1,4 +1,3 @@
-// @ts-ignore
 import { LogExecutionTime } from '../../src/debugging/logExecutionTime';
 
 describe('LogExecutionTime (Browser)', () => {
@@ -9,6 +8,7 @@ describe('LogExecutionTime (Browser)', () => {
 
   it('should not alter the descriptor', () => {
     class TestClass {
+// @ts-ignore
       @LogExecutionTime()
       method(): string {
         return 'test';
