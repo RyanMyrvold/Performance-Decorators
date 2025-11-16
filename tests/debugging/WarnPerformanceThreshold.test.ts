@@ -53,12 +53,12 @@ describe('WarnPerformanceThreshold Decorator', () => {
   it('should log a warning for slowMethod', () => {
     const result = testInstance.slowMethod();
     expect(result).toBe('slow');
-    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('exceeded threshold of 50 ms'));
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("slowMethod exceeded 50 ms"));
   });
 
   it('should call custom performance handler', () => {
     const result = testInstance.customHandlerMethod();
     expect(result).toBe('custom');
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Custom Handler: customHandlerMethod took'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('customHandlerMethod'));
   });
 });

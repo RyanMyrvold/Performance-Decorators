@@ -1,93 +1,110 @@
-import { LogMemoryUsage } from '../../src/debugging/LogMemoryUsage';
-import { getMemoryUsage } from '../../src/utilities/MemoryUtilities';
+// test/debugging/LogMemoryUsage.spec.ts
+import { LogMemoryUsage } from "../../src/debugging/LogMemoryUsage";
+import { getMemoryUsage } from "../../src/utilities/MemoryUtilities";
 
-jest.mock('../../src/utilities/MemoryUtilities', () => ({
+jest.mock("../../src/utilities/MemoryUtilities", () => ({
   getMemoryUsage: jest.fn(),
 }));
 
-describe('LogMemoryUsage Decorator', () => {
+describe("LogMemoryUsage Decorator", () => {
   let memoryHandler: jest.Mock;
   let originalConsoleLog: typeof console.log;
-  let originalConsoleError: typeof console.error;
 
   beforeAll(() => {
     originalConsoleLog = console.log;
-    originalConsoleError = console.error;
   });
 
   beforeEach(() => {
     memoryHandler = jest.fn();
     console.log = jest.fn();
-    console.error = jest.fn();
+    (getMemoryUsage as jest.Mock).mockReset();
   });
 
   afterEach(() => {
     console.log = originalConsoleLog;
-    console.error = originalConsoleError;
   });
 
-  it('should log memory usage correctly in a supported environment', () => {
+  it("logs memory delta when supported", () => {
     (getMemoryUsage as jest.Mock).mockReturnValueOnce(100).mockReturnValueOnce(150);
 
-    const context = { name: 'testMethod' } as unknown as ClassMethodDecoratorContext;
-    const originalMethod = jest.fn(() => 'result');
+    class TestClass {
+      @LogMemoryUsage(memoryHandler)
+      testMethod() {
+        return "result";
+      }
+    }
 
-    const decoratedMethod = LogMemoryUsage(memoryHandler)(originalMethod, context);
-    const result = decoratedMethod();
+    const instance = new TestClass();
+    const result = instance.testMethod();
 
-    expect(result).toBe('result');
-    expect(memoryHandler).toHaveBeenCalledWith(50, 'testMethod');
-    expect(console.log).toHaveBeenCalledWith('🧠 [Memory Usage] testMethod: Memory used=50 bytes');
+    expect(result).toBe("result");
+    expect(memoryHandler).toHaveBeenCalledWith(50, "testMethod");
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("🧠 [Memory] testMethod: Δ=50 bytes")
+    );
   });
 
-  it('should not call memoryHandler if memory measurement is not supported', () => {
+  it("does not call handler when measurement unsupported", () => {
     (getMemoryUsage as jest.Mock).mockReturnValueOnce(undefined);
 
-    const context = { name: 'testMethod' } as unknown as ClassMethodDecoratorContext;
-    const originalMethod = jest.fn(() => 'result');
+    class TestClass {
+      @LogMemoryUsage(memoryHandler)
+      testMethod() {
+        return "result";
+      }
+    }
 
-    const decoratedMethod = LogMemoryUsage(memoryHandler)(originalMethod, context);
-    const result = decoratedMethod();
+    const instance = new TestClass();
+    const result = instance.testMethod();
 
-    expect(result).toBe('result');
+    expect(result).toBe("result");
     expect(memoryHandler).not.toHaveBeenCalled();
-    expect(console.error).toHaveBeenCalledWith(
-      "🐞 [Memory Usage] Memory measurement is not supported in this environment."
-    );
+    // No error is logged in the new implementation
+    expect(console.log).not.toHaveBeenCalled();
   });
 
-  it('should handle method names that are symbols correctly', () => {
+  it("handles symbol names", () => {
     (getMemoryUsage as jest.Mock).mockReturnValueOnce(200).mockReturnValueOnce(300);
 
-    const context = { name: Symbol('testMethod') } as unknown as ClassMethodDecoratorContext;
-    const originalMethod = jest.fn(() => 'result');
+    const sym = Symbol("testMethod");
 
-    const decoratedMethod = LogMemoryUsage(memoryHandler)(originalMethod, context);
-    const result = decoratedMethod();
+    class TestClass {
+      @LogMemoryUsage(memoryHandler)
+      [sym]() {
+        return "result";
+      }
+    }
 
-    expect(result).toBe('result');
-    expect(memoryHandler).toHaveBeenCalledWith(100, 'Symbol(testMethod)');
-    expect(console.log).toHaveBeenCalledWith('🧠 [Memory Usage] Symbol(testMethod): Memory used=100 bytes');
+    const instance = new TestClass();
+    const result = (instance as any)[sym]();
+
+    expect(result).toBe("result");
+    expect(memoryHandler).toHaveBeenCalledWith(100, "Symbol(testMethod)");
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("🧠 [Memory] Symbol(testMethod): Δ=100 bytes")
+    );
   });
 
-  it('should handle memory measurement errors gracefully', () => {
+  it("swallows post-call measurement errors", () => {
     (getMemoryUsage as jest.Mock)
-      .mockReturnValueOnce(100)
+      .mockReturnValueOnce(100) // before
       .mockImplementationOnce(() => {
-        throw new Error('Memory measurement error');
-      });
+        throw new Error("boom");
+      }); // after
 
-    const context = { name: 'testMethod' } as unknown as ClassMethodDecoratorContext;
-    const originalMethod = jest.fn(() => 'result');
+    class TestClass {
+      @LogMemoryUsage(memoryHandler)
+      testMethod() {
+        return "result";
+      }
+    }
 
-    const decoratedMethod = LogMemoryUsage(memoryHandler)(originalMethod, context);
-    const result = decoratedMethod();
+    const instance = new TestClass();
+    const result = instance.testMethod();
 
-    expect(result).toBe('result');
+    expect(result).toBe("result");
     expect(memoryHandler).not.toHaveBeenCalled();
-    expect(console.error).toHaveBeenCalledWith(
-      "🐞 [Memory Usage] Error measuring memory after execution:",
-      expect.any(Error)
-    );
+    // No console error in new implementation
+    expect(console.log).not.toHaveBeenCalled();
   });
 });

@@ -12,6 +12,11 @@ describe('System Utilities', () => {
       global.process = originalProcess;
     });
 
+    afterAll(() => {
+      // @ts-ignore
+      global.process = originalProcess;
+    });
+
     it('should return true in Node.js environment', () => {
       global.process = {
         hrtime: { bigint: () => BigInt(1000) },

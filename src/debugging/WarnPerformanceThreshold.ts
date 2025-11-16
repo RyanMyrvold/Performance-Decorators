@@ -1,56 +1,59 @@
+// src/optimizations/WarnPerformanceThreshold.ts
+import { Method, MethodContext } from "../types";
+import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities/TimeUtilities";
+
 /**
- * Decorator to log a warning if the method execution time exceeds a specified threshold.
- * It uses high-resolution time in Node.js and performance.now() in browsers.
- * @param threshold - The execution time threshold in milliseconds. Defaults to 100ms.
- * @param performanceHandler - An optional custom performance handler function that takes
- *                             the execution time and method name as parameters.
- * @returns MethodDecorator
+ * Warns if a method's execution time exceeds `threshold` milliseconds.
+ * Uses high-resolution timers where available (Node hrtime bigint / performance.now()).
+ *
+ * @param thresholdMs      Threshold in ms (default 100)
+ * @param performanceHandler Optional callback (elapsedMs, methodName) when threshold exceeded.
+ *
+ * @code
+ * class Work {
+ *   @WarnPerformanceThreshold(5, (ms, name) => console.warn(`${name} ${ms.toFixed(2)}ms`))
+ *   crunch(): number { let s = 0; for (let i=0;i<1e5;i++) s += i; return s; }
+ * }
+ * @endcode
  */
-export function WarnPerformanceThreshold(threshold: number = 100, performanceHandler?: (executionTime: number, methodName: string) => void) {
+export function WarnPerformanceThreshold(
+  thresholdMs: number = 100,
+  performanceHandler?: (ms: number, methodName: string) => void
+) {
+  return function <This, Args extends unknown[], Return>(
+    value: Method<This, Args, Return>,
+    context: MethodContext<This, Args, Return>
+  ): Method<This, Args, Return> {
+    const name = String(context.name);
 
-  return function (originalMethod: Function, context: { kind: string, name: string | symbol }) {
-
-    if (typeof originalMethod !== "function") {
-      throw new Error("🐞 [Performance Threshold] Can only be applied to methods.");
-    }
-
-    return function (this: any, ...args: any[]) {
-      const isNodeEnvironment =
-        typeof process !== "undefined" && process.hrtime && process.hrtime.bigint;
-      const isBrowserEnvironment =
-        typeof performance !== "undefined" && performance.now;
-
-      let start: number | bigint | undefined;
-      let end: number | bigint | undefined;
-      let executionTime: number;
-
-      if (isNodeEnvironment) {
-        start = process.hrtime.bigint();
-      } else if (isBrowserEnvironment) {
-        start = performance.now();
+    const warn = (ms: number) => {
+      if (ms > thresholdMs) {
+        console.warn(`⚠️ [Performance] ${name} exceeded ${thresholdMs} ms (${ms.toFixed(2)} ms).`);
+        performanceHandler?.(ms, name);
       }
+    };
 
-      const result = originalMethod.apply(this, args);
-
-      if (isNodeEnvironment && start !== undefined) {
-        end = process.hrtime.bigint();
-        executionTime = Number(end - BigInt(start)) / 1_000_000; // Convert nanoseconds to milliseconds
-      } else if (isBrowserEnvironment && start !== undefined) {
-        end = performance.now();
-        executionTime = end - Number(start);
-      } else {
-        console.error("🐞 [Performance] Performance timing not supported in this environment.");
-        return result;
+    return function (this: This, ...args: Args): Return {
+      const start = getHighResolutionTime();
+      try {
+        const out = value.apply(this, args);
+        if (out instanceof Promise) {
+          return (async () => {
+            const r = await out;
+            const end = getHighResolutionTime();
+            warn(calculateTimeInMilliseconds(start, end));
+            return r;
+          })() as unknown as Return;
+        } else {
+          const end = getHighResolutionTime();
+          warn(calculateTimeInMilliseconds(start, end));
+          return out;
+        }
+      } catch (e) {
+        const end = getHighResolutionTime();
+        warn(calculateTimeInMilliseconds(start, end));
+        throw e;
       }
-
-      if (executionTime > threshold) {
-        const methodName = typeof context.name === 'symbol' ? String(context.name) : context.name;
-        const warningMessage = `⚠️ [Performance] ${methodName} exceeded threshold of ${threshold} ms`;
-        console.warn(warningMessage);
-        performanceHandler?.(executionTime, methodName);
-      }
-
-      return result;
     };
   };
 }

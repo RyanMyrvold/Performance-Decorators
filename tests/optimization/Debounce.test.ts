@@ -1,9 +1,31 @@
-import { Debounce } from "../../src/optimization";
+// tests/optimization/Debounce.test.ts
+import { Debounce } from "../../src/optimization/Debounce";
 
 describe("Debounce Decorator", () => {
-  jest.useFakeTimers();
+  beforeEach(() => {
+    // Modern timers are fine; avoid setImmediate/nextTick in helpers.
+    jest.useFakeTimers();
+  });
 
-  it("should debounce method calls", () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  const flushAllTimers = async () => {
+    const anyJest = jest as unknown as {
+      runAllTimersAsync?: () => Promise<void>;
+      advanceTimersByTimeAsync?: (ms: number) => Promise<void>;
+    };
+    if (anyJest.runAllTimersAsync) {
+      await anyJest.runAllTimersAsync();
+    } else {
+      jest.runAllTimers();
+    }
+  };
+
+  it("should debounce method calls", async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -15,13 +37,16 @@ describe("Debounce Decorator", () => {
 
     const instance = new TestClass();
     instance.debounceMethod();
-    instance.debounceMethod();
-    jest.runAllTimers();
+    instance.debounceMethod(); // coalesced into one execution
+
+    // Advance timers enough and flush all pending timers/microtasks that Jest tracks
+    jest.advanceTimersByTime(301);
+    await flushAllTimers();
 
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should debounce method calls with custom delay", () => {
+  it("should debounce method calls with custom delay", async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -34,12 +59,14 @@ describe("Debounce Decorator", () => {
     const instance = new TestClass();
     instance.debounceMethod();
     instance.debounceMethod();
-    jest.runAllTimers();
+
+    jest.advanceTimersByTime(501);
+    await flushAllTimers();
 
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should debounce method calls with default delay", () => {
+  it("should debounce method calls with default delay (300ms)", async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -52,12 +79,14 @@ describe("Debounce Decorator", () => {
     const instance = new TestClass();
     instance.debounceMethod();
     instance.debounceMethod();
-    jest.runAllTimers();
+
+    jest.advanceTimersByTime(301);
+    await flushAllTimers();
 
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should debounce method calls with zero delay", () => {
+  it("should debounce method calls with zero delay (coalesce same tick)", async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -70,8 +99,9 @@ describe("Debounce Decorator", () => {
     const instance = new TestClass();
     instance.debounceMethod();
     instance.debounceMethod();
-    jest.runAllTimers();
 
+    // For 0ms, timers still queue; run all pending timers
+    await flushAllTimers();
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
@@ -79,7 +109,7 @@ describe("Debounce Decorator", () => {
     expect(() => {
       class InvalidTestClass {
         @Debounce(-100)
-        invalidMethod(): void {}
+        invalidMethod() {}
       }
     }).toThrow("🐞 [Debounce] Delay must be non-negative.");
   });

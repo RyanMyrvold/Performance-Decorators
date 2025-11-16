@@ -1,6 +1,6 @@
 # 🚀 Performance Decorators: A TypeScript Library for Efficient Performance Monitoring & Optimization
 
-Elevate your application's performance with Performance Decorators! This TypeScript library provides powerful tools for seamless performance monitoring and optimization in both Node.js and browser environments. Simplify the task of identifying performance bottlenecks and ensure your applications run efficiently with our easy-to-use decorators.
+Elevate your application's performance with **Performance Decorators**! This TypeScript library provides powerful tools for seamless performance monitoring and optimization in both Node.js and browser environments. Simplify identifying bottlenecks and ensure your applications run efficiently with easy-to-use decorators.
 
 [![Unit Tests](https://github.com/RyanMyrvold/Performance-Decorators/actions/workflows/npm-test.yml/badge.svg)](https://github.com/RyanMyrvold/Performance-Decorators/actions/workflows/npm-test.yml)
 [![npm](https://img.shields.io/npm/v/performance-decorators)](https://www.npmjs.com/package/performance-decorators)
@@ -12,25 +12,23 @@ Elevate your application's performance with Performance Decorators! This TypeScr
 
 ### Debugging Decorators
 
-- **LogExecutionTime**: Method Decorator - Logs method execution times, helping pinpoint performance bottlenecks.
-- **LogMemoryUsage**: Method Decorator - Tracks and logs memory usage, aiding in efficient resource management.
-- **LogMethodError**: Method Decorator - Handles and logs method errors, with an option to rethrow them.
-- **WarnMemoryLeak**: Class Decorator - Monitors and warns of potential memory leaks, supporting both Node.js and browsers. Options include setting check intervals, memory usage thresholds, custom logging, and manual garbage collection in Node.js.
-- **WarnPerformanceThreshold**: Method Decorator - Alerts when methods surpass predefined execution time thresholds.
-- **LogNetworkRequests**: Method Decorator - Logs network requests made within the decorated method, providing insights into network performance bottlenecks.
-- **LogReturnValue**: Method Decorator - Logs the return value of a method, aiding in debugging and ensuring methods return expected results.
+* **`LogExecutionTime`**: Method decorator — Measures and logs execution time (supports sync, async, and thrown errors).
+* **`LogMemoryUsage`**: Method decorator — Logs memory delta (bytes) before and after method execution when supported.
+* **`LogMethodError`**: Method decorator — Catches, logs errors (including non-Error throws), and optionally rethrows.
+* **`WarnMemoryLeak`**: Class decorator — Periodically checks memory usage and warns if it grows past a threshold. Node.js and browsers supported.
+* **`WarnPerformanceThreshold`**: Method decorator — Warns (via `console.warn` and optional handler) if execution time exceeds a threshold.
+* **`LogNetworkRequests`**: Method decorator — Wraps `fetch()` inside the decorated method scope and logs each request (method, URL, status, timing). Works if `globalThis.fetch` is available.
+* **`LogReturnValue`**: Method decorator — Logs the returned value of a method (sync or async) using a supplied logger or `console.log`.
 
 ### Optimization Decorators
 
-- **AutoRetry**: Method Decorator - Automatically retries a failed asynchronous operation until it succeeds or reaches a maximum number of retries.
-- **Debounce**: Method Decorator - Limits the rate at which a function can fire, perfect for handling events like resizing, scrolling, or keypresses.
-- **LazyLoad**: Property Decorator - Delays the initialization of properties until they are first accessed, optimizing resource use and computation time.
-- **Memoize**: Method Decorator - Caches the results of expensive function calls, optimizing performance by avoiding repeated calculations.
-- **Throttle**: Method Decorator - Ensures a function is not called more than once in a specified period, useful for rate-limiting execution of handlers on frequent events.
+* **`AutoRetry`**: Method decorator — Retries async operations up to N times with configurable delay until success or final failure.
+* **`Debounce`**: Method decorator — Coalesces rapid successive calls into a single execution *after* the specified delay. Returns a Promise.
+* **`LazyLoad`**: (Getter or zero-arg method) decorator — Lazily computes and caches the result on first access; subsequent calls retrieve cached value.
+* **`Memoize`**: Method decorator — Caches results per-instance and per-method key (default key = JSON.stringify args unless a custom key builder is provided).
+* **`Throttle`**: Method decorator — Ensures a method isn’t executed more than once per specified window; fires immediately (leading) and coalesces a trailing call if additional invocations happen within the window.
 
 ## 📦 Installation
-
-Easily integrate into your project:
 
 ```bash
 npm install performance-decorators
@@ -42,45 +40,47 @@ npm install performance-decorators
 
 #### Log Execution Time
 
-```typescript
+```ts
 import { LogExecutionTime } from "performance-decorators/debugging";
 
 class PerformanceExample {
   @LogExecutionTime()
   quickMethod() {
-    // Simulated task
+    // ...
   }
 
-  @LogExecutionTime((time, method) => console.log(`${method} took ${time} ms`))
+  @LogExecutionTime((ms, methodName) =>
+    console.debug(`[${methodName}] executed in ${ms.toFixed(2)}ms`)
+  )
   detailedMethod() {
-    // More complex task
+    // ...
   }
 }
 ```
 
 #### Log Memory Usage
 
-```typescript
+```ts
 import { LogMemoryUsage } from "performance-decorators/debugging";
 
 class PerformanceExample {
   @LogMemoryUsage()
-  standardMemoryMethod() {
-    // Memory consuming task
+  methodWithMemoryUse() {
+    // ...
   }
 
-  @LogMemoryUsage((usedMemory, method) =>
-    console.log(`${method} used ${usedMemory} bytes`),
+  @LogMemoryUsage((deltaBytes, methodName) =>
+    console.debug(`[${methodName}] Δ${deltaBytes} bytes`)
   )
   detailedMemoryMethod() {
-    // Task with detailed memory monitoring
+    // ...
   }
 }
 ```
 
 #### Log Method Error
 
-```typescript
+```ts
 import { LogMethodError } from "performance-decorators/debugging";
 
 class PerformanceExample {
@@ -89,8 +89,8 @@ class PerformanceExample {
     throw new Error("Example error");
   }
 
-  @LogMethodError(true, (error, method) =>
-    console.error(`${method} error: ${error.message}`),
+  @LogMethodError(false, (error, methodName) =>
+    console.error(`[${methodName}] error: ${error.message}`)
   )
   methodWithCustomErrorHandling() {
     throw new Error("Custom error");
@@ -100,89 +100,68 @@ class PerformanceExample {
 
 #### Warn Memory Leak
 
-```typescript
-import WarnMemoryLeak from "performance-decorators/debugging";
+```ts
+import { WarnMemoryLeak } from "performance-decorators/debugging";
 
 /**
- * Class decorator to monitor and warn about potential memory leaks.
- * Works in both Node.js and browser environments.
- *
- * @param checkIntervalMs - Interval in milliseconds to check memory usage.
- * @param thresholdPercent - Percentage increase in memory usage to trigger warning.
- * @param logger - Logging function to use for warnings.
- * @param enableManualGC - Enables manual garbage collection in Node.js (requires --expose-gc flag).
+ * @param checkIntervalMs – interval between memory checks (default 30 000ms)
+ * @param thresholdPercent – percent increase that triggers warning (default 20%)
+ * @param logger – warning logger (default console.warn)
  */
-function MemoryLeakWarning(
-  checkIntervalMs: number = 30000,
-  thresholdPercent: number = 20,
-  logger: (msg: string) => void = console.warn,
-  enableManualGC: boolean = false,
-) {
-  return WarnMemoryLeak(
-    checkIntervalMs,
-    thresholdPercent,
-    logger,
-    enableManualGC,
-  );
-}
-
-@MemoryLeakWarning(30000, 20, console.warn, false)
+@WarnMemoryLeak(30000, 20, console.warn)
 class MyMonitoredClass {
-  // Your class implementation
+  // ...
 }
-
-// Create an instance
-const instance = new MyMonitoredClass();
 ```
 
 #### Warn Performance Threshold
 
-```typescript
+```ts
 import { WarnPerformanceThreshold } from "performance-decorators/debugging";
 
 class PerformanceExample {
-  @WarnPerformanceThreshold()
-  methodWithDefaultThreshold() {
-    // Task to be monitored
+  @WarnPerformanceThreshold() // default threshold ~100ms
+  defaultThresholdMethod() {
+    // ...
   }
 
-  @WarnPerformanceThreshold(200, (time, method) =>
-    console.warn(`${method} exceeded ${time} ms`),
+  @WarnPerformanceThreshold(200, (ms, methodName) =>
+    console.warn(`[${methodName}] took ${ms.toFixed(2)}ms`)
   )
-  methodWithCustomThreshold() {
-    // Another monitored task
+  customThresholdMethod() {
+    // ...
   }
 }
 ```
 
 #### Log Network Requests
 
-```typescript
-import LogNetworkRequests from "performance-decorators/debugging";
+```ts
+import { LogNetworkRequests } from "performance-decorators/debugging";
 
-class PerformanceExample {
+class ApiService {
   @LogNetworkRequests()
-  async fetchData(url: string): Promise<void> {
-    const response = await fetch(url);
-    return response.json();
+  async fetchData(url: string) {
+    const r = await fetch(url);
+    return r.json();
   }
 
   @LogNetworkRequests((log) => {
-    console.log(
-      `Custom Logger - ${log.method} request to ${log.url} took ${log.duration.toFixed(2)}ms`,
+    console.debug(
+      `[Fetch] ${log.method} ${log.url} → ${log.status} in ${(log.end - log.start).toFixed(2)}ms`
     );
   })
-  async fetchDataWithCustomLogger(url: string): Promise<void> {
-    const response = await fetch(url);
-    return response.json();
+  async fetchWithCustomLogger(url: string) {
+    const r = await fetch(url);
+    return r.json();
   }
 }
 ```
 
 #### Log Return Value
 
-```typescript
-import LogReturnValue from "performance-decorators/debugging";
+```ts
+import { LogReturnValue } from "performance-decorators/debugging";
 
 class ExampleService {
   @LogReturnValue()
@@ -191,89 +170,72 @@ class ExampleService {
   }
 
   @LogReturnValue((value, methodName) =>
-    console.log(`[${methodName}] returned:`, value),
+    console.debug(`[${methodName}] returned`, value)
   )
   async fetchData(url: string): Promise<any> {
-    const response = await fetch(url);
-    return response.json();
+    const r = await fetch(url);
+    return r.json();
   }
 }
-
-const service = new ExampleService();
-console.log(service.calculateSum(3, 4)); // Logs and returns 7
-service.fetchData("https://api.example.com/data"); // Logs the returned JSON data
 ```
 
 ### Optimization Decorators Usage
 
 #### AutoRetry
 
-```typescript
+```ts
 import { AutoRetry } from "performance-decorators/optimization";
 
 class DataService {
-  @AutoRetry(3, 1000) // Retry up to 3 times with a 1-second delay
+  @AutoRetry(3, 1000) // up to 3 retries, 1 000ms delay
   async fetchData(url: string) {
-    console.log(`Fetching data from ${url}`);
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Network response was not ok.");
+    const r = await fetch(url);
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}`);
     }
-    return response.json();
+    return r.json();
   }
 }
-
-const service = new DataService();
-service
-  .fetchData("https://api.example.com/data")
-  .then((data) => console.log("Data fetched successfully:", data))
-  .catch((error) => console.error("Failed to fetch data:", error));
 ```
 
 #### Debounce
 
-```typescript
+```ts
 import { Debounce } from "performance-decorators/optimization";
 
 class SearchComponent {
   @Debounce(300)
   async onSearch(term: string) {
-    console.log(`Searching for: ${term}`);
-    // Simulate an API call
-    return fetch(`/api/search?q=${encodeURIComponent(term)}`).then((res) =>
-      res.json(),
-    );
+    console.debug(`Searching for ${term}`);
+    return fetch(`/api/search?q=${encodeURIComponent(term)}`).then(r => r.json());
   }
 }
 
-const searchComponent = new SearchComponent();
-searchComponent.onSearch("hello");
+const search = new SearchComponent();
+search.onSearch("hello"); // only one of rapid calls executes
 ```
 
 #### LazyLoad
 
-```typescript
+```ts
 import { LazyLoad } from "performance-decorators/optimization";
 
 class ExpensiveComputation {
   @LazyLoad()
-  get expensiveData() {
-    console.log("Computing expensive data");
-    return Array.from({ length: 1000000 }, (_, i) => Math.sqrt(i));
+  get data() {
+    console.debug("Initializing expensive data");
+    return Array.from({ length: 1_000_000 }, (_, i) => Math.sqrt(i));
   }
 }
 
-const computation = new ExpensiveComputation();
-console.log("ExpensiveComputation instance created");
-
-// The first access triggers the computation
-console.log(computation.expensiveData[1000]); // Initializes and accesses the data
-console.log(computation.expensiveData[2000]); // Accesses cached data
+const inst = new ExpensiveComputation();
+console.log(inst.data[0]);  // computes once
+console.log(inst.data[10]); // cached
 ```
 
 #### Memoize
 
-```typescript
+```ts
 import { Memoize } from "performance-decorators/optimization";
 
 class Calculator {
@@ -283,36 +245,29 @@ class Calculator {
     return this.fibonacci(n - 1) + this.fibonacci(n - 2);
   }
 }
-
-const calculator = new Calculator();
-console.log(calculator.fibonacci(10)); // Computed
-console.log(calculator.fibonacci(10)); // Cached result
 ```
 
 #### Throttle
 
-```typescript
+```ts
 import { Throttle } from "performance-decorators/optimization";
 
 class ScrollHandler {
   @Throttle(100)
-  onScroll(event: Event) {
-    console.log("Scrolling", event);
+  onScroll(e: Event) {
+    console.debug("Scroll event processed");
   }
 }
-
-const handler = new ScrollHandler();
-window.addEventListener("scroll", handler.onScroll);
 ```
 
 ## 📘 API Documentation
 
-Refer to the TypeScript JSDoc comments in the source code for detailed API information. Each decorator is well-documented, providing insights into its usage and configuration.
+All decorators include full JSDoc comments with parameter descriptions, return types, and usage examples. Inspect the source (`src/debugging`, `src/optimizations`) for details.
 
 ## 🚧 Contributing
 
-Contributions are welcome! Please refer to the project's style and contribution guidelines for submitting patches and additions. Ensure to follow best practices and add tests for new features.
+Contributions, bug-reports, and ideas are welcome! Please open issues or pull requests, include tests for new features, and follow existing patterns.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License — see the [LICENSE](LICENSE) file for details.

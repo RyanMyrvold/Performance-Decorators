@@ -1,10 +1,9 @@
 // src/debugging/LogNetworkRequests.ts
-
-import { getHighResolutionTime, isBrowserEnvironment, isNodeEnvironment } from '../utilities';
-import { AsyncLocalStorage } from 'async_hooks';
+import { Method, MethodContext } from "../types";
+import { isBrowserEnvironment, isNodeEnvironment, getHighResolutionTime } from "../utilities";
 
 /**
- * Network log entry interface.
+ * Network log entry shape.
  */
 export interface NetworkLogEntry {
   method: string;
@@ -15,90 +14,123 @@ export interface NetworkLogEntry {
   statusText: string;
 }
 
+export type NetworkLogger = (entry: NetworkLogEntry) => void;
+
+const NOOP: NetworkLogger = () => {};
+
+// Safe, global patch bookkeeping
+const PATCH_FLAG = Symbol.for("logNetworkRequests.isPatched");
+const REFCOUNT   = Symbol.for("logNetworkRequests.refCount");
+const ORIGINAL   = Symbol.for("logNetworkRequests.originalFetch");
+
 /**
- * Default no-operation logging function.
- * If no logFn is provided, no logging will be made.
+ * Monotonic-ish millisecond clock across environments.
  */
-const defaultLogFunction = (log: NetworkLogEntry) => {
-  console.log(log);
+const now = (): number => {
+  try {
+    if (isBrowserEnvironment() && typeof performance?.now === "function") return performance.now();
+    if (isNodeEnvironment()) return Number(getHighResolutionTime()); // bigint→number (for deltas/logging)
+  } catch { /* ignore */ }
+  return Date.now();
 };
 
-/**
- * @description A decorator to log network requests made within the decorated method.
- * It logs the HTTP method, URL, and the duration of each request.
- * This decorator works in both Node.js and browser environments.
- * @param logFn - Optional custom logging function. If not provided, no logs will be made.
- * @returns A method decorator function.
- */
-export function LogNetworkRequests<T extends (...args: any[]) => Promise<any>>(
-  logFn: (log: NetworkLogEntry) => void = defaultLogFunction
-) {
-  // Initialize AsyncLocalStorage synchronously if in Node.js environment
-  let asyncLocalStorage: AsyncLocalStorage<Map<string, any>> | null = null;
-  if (isNodeEnvironment()) {
-    try {
-      asyncLocalStorage = new AsyncLocalStorage<Map<string, any>>();
-    } catch (error) {
-      // If AsyncLocalStorage cannot be initialized, proceed without it
-      asyncLocalStorage = null;
-    }
+function readRequest(input: RequestInfo | URL, init?: RequestInit): { method: string; url: string } {
+  let method = init?.method?.toUpperCase() ?? "GET";
+  let url = "";
+  if (typeof input === "string") url = input;
+  else if (input instanceof URL) url = input.toString();
+  else if (typeof Request !== "undefined" && input instanceof Request) {
+    url = input.url;
+    if (!init?.method && input.method) method = input.method.toUpperCase();
+  } else {
+    try { url = String((input as any)?.url ?? input); } catch { url = "[unreadable]"; }
+  }
+  return { method, url };
+}
+
+function patchFetch(logger: NetworkLogger): () => void {
+  const g = globalThis as any;
+  if (typeof g.fetch !== "function") return () => {};
+
+  if (typeof g[REFCOUNT] !== "number") g[REFCOUNT] = 0;
+
+  if (g[PATCH_FLAG]) {
+    g[REFCOUNT] += 1;
+    return () => { g[REFCOUNT] = Math.max(0, g[REFCOUNT] - 1); };
   }
 
-  return function (
-    originalMethod: T,
-    context: ClassMethodDecoratorContext
-  ): T {
-    const methodName = context.name as string;
+  const orig: typeof fetch = g.fetch.bind(g);
+  g[ORIGINAL] = orig;
 
-    const wrappedMethod = async function (this: any, ...args: Parameters<T>): Promise<ReturnType<T>> {
-      // Check if fetch is available
-      if (typeof globalThis.fetch !== 'function') {
-        // Proceed without wrapping fetch
-        return originalMethod.apply(this, args);
+  const wrapper: typeof fetch & { [PATCH_FLAG]?: boolean } = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const { method, url } = readRequest(input, init);
+    const start = now();
+    const res = await orig(input as any, init as any);
+    const end = now();
+    try { logger({ method, url, start, end, status: res.status, statusText: res.statusText }); } catch { /* ignore */ }
+    return res;
+  }) as any;
+
+  wrapper[PATCH_FLAG] = true;
+  g[PATCH_FLAG] = true;
+  g[REFCOUNT] = 1;
+  g.fetch = wrapper;
+
+  return () => {
+    g[REFCOUNT] = Math.max(0, g[REFCOUNT] - 1);
+    if (g[REFCOUNT] === 0) {
+      g.fetch = g[ORIGINAL];
+      delete g[ORIGINAL];
+      delete g[PATCH_FLAG];
+    }
+  };
+}
+
+/**
+ * Logs all `fetch` network requests made during the decorated method’s execution.
+ * Patch is applied only for the call scope (reference-counted across concurrent calls).
+ *
+ * @param logFn Optional logger (default: no-op).
+ *
+ * @example
+ * class ApiService {
+ *   @LogNetworkRequests((e) => console.debug(`[${e.method}] ${e.url} ${(e.end - e.start).toFixed(2)}ms ${e.status}`))
+ *   async getUser(id: string) {
+ *     const res = await fetch(`/api/users/${id}`);
+ *     return res.json();
+ *   }
+ * }
+ */
+export function LogNetworkRequests(logFn: NetworkLogger = NOOP) {
+  return function <
+    This,
+    Args extends unknown[],
+    Return
+  >(
+    value: Method<This, Args, Return>,
+    _context: MethodContext<This, Args, Return>
+  ): Method<This, Args, Return> {
+    const logger: NetworkLogger = (e) => { try { logFn(e); } catch { /* ignore */ } };
+
+    return function (this: This, ...args: Args): Return {
+      if (typeof (globalThis as any).fetch !== "function") {
+        return value.apply(this, args);
       }
 
-      // Check if fetch is already wrapped
-      if ((globalThis.fetch as any).isWrapped) {
-        return originalMethod.apply(this, args);
+      const unpatch = patchFetch(logger);
+      try {
+        const out = value.apply(this, args);
+        if (out instanceof Promise) {
+          return (out as Promise<unknown>)
+            .then((r) => { unpatch(); return r as Return; })
+            .catch((err) => { unpatch(); throw err; }) as Return;
+        }
+        unpatch();
+        return out;
+      } catch (err) {
+        unpatch();
+        throw err;
       }
-
-      const fetchOriginal = globalThis.fetch;
-
-      // Define fetchWrapper
-      const fetchWrapper = async (
-        input: RequestInfo | URL,
-        init?: RequestInit
-      ): Promise<Response> => {
-        const method = init?.method || 'GET';
-        const url = typeof input === 'string' ? input : (input as Request).url;
-        const start = isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime());
-
-        // Call the original fetch method
-        const response = await fetchOriginal(input, init);
-
-        // Log the network request
-        logFn({
-          method,
-          url,
-          start,
-          end: isBrowserEnvironment() ? performance.now() : Number(getHighResolutionTime()),
-          status: response.status,
-          statusText: response.statusText,
-        });
-
-        return response;
-      };
-
-      // Mark fetch as wrapped
-      (fetchWrapper as any).isWrapped = true;
-
-      // Replace global fetch with the wrapper
-      globalThis.fetch = fetchWrapper;
-
-      // Call the original method
-      return originalMethod.apply(this, args);
     };
-
-    return wrappedMethod as T;
   };
 }

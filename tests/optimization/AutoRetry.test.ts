@@ -1,42 +1,35 @@
-// tests/AutoRetry.test.ts
-import { AutoRetry } from '../../src/optimization';
+// tests/optimization/AutoRetry.test.ts
+import { AutoRetry } from "../../src/optimization/AutoRetry";
 
-class TestClass {
-  private attempts = 0;
+describe("AutoRetry Decorator", () => {
+  it("retries the method until it succeeds", async () => {
+    class TestClass {
+      private attempts = 0;
 
-  @AutoRetry(3, 100)
-  async unreliableMethod() {
-    this.attempts++;
-    if (this.attempts < 3) {
-      throw new Error('Temporary failure');
+      // retries=2 => up to 3 total attempts; delay=0 so no timers needed
+      @AutoRetry(2, 0)
+      async unreliableMethod() {
+        this.attempts++;
+        if (this.attempts < 3) {
+          throw new Error("Temporary failure");
+        }
+        return "Success";
+      }
     }
-    return 'Success';
-  }
 
-  @AutoRetry(3, 100)
-  async permanentlyFailingMethod() {
-    throw new Error('Permanent failure');
-  }
-
-  resetAttempts() {
-    this.attempts = 0;
-  }
-}
-
-describe('AutoRetry Decorator', () => {
-  let instance: TestClass;
-
-  beforeEach(() => {
-    instance = new TestClass();
-    instance.resetAttempts();
+    const instance = new TestClass();
+    await expect(instance.unreliableMethod()).resolves.toBe("Success");
   });
 
-  it('should retry the method until it succeeds', async () => {
-    const result = await instance.unreliableMethod();
-    expect(result).toBe('Success');
-  });
+  it("fails after the maximum number of retries", async () => {
+    class TestClass {
+      @AutoRetry(2, 0) // retries=2 => total attempts=3
+      async permanentlyFailingMethod() {
+        throw new Error("Permanent failure");
+      }
+    }
 
-  it('should fail after the maximum number of retries', async () => {
-    await expect(instance.permanentlyFailingMethod()).rejects.toThrow('🚨 [Auto Retry] Failed after 3 retries: Permanent failure');
+    const instance = new TestClass();
+    await expect(instance.permanentlyFailingMethod()).rejects.toThrow(/Failed after 2 retries: Permanent failure/);
   });
 });

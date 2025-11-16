@@ -1,69 +1,69 @@
-import { isBrowserEnvironment, isNodeEnvironment } from "../../src/utilities";
+// src/debugging/LogExecutionTime.ts
+import { Method, MethodContext } from "../types";
+import { isBrowserEnvironment, isNodeEnvironment } from "../utilities";
 import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities/TimeUtilities";
 
 /**
- * Decorator to log the execution time of a method. It uses high-resolution time in Node.js
- * and performance.now() in browsers.
- * @param handler - A custom handler function that takes the execution time and method name as parameters.
- * @returns MethodDecorator
+ * Logs execution time for a method using high-resolution clocks.
+ *
+ * - Browser: performance.now()
+ * - Node: getHighResolutionTime() (bigint)
+ * - Fallback: Date.now()
+ *
+ * Works for sync and async methods. Invokes the optional handler with (ms, methodName).
+ *
+ * @param handler Optional callback invoked as (elapsedMs, methodName).
+ *
+ * @example
+ * class ExampleService {
+ *   @LogExecutionTime((ms, name) => console.debug(`[${name}] ${ms.toFixed(2)}ms`))
+ *   compute(n: number): number {
+ *     let s = 0; for (let i = 0; i < n; i += 1) s += i; return s;
+ *   }
+ * }
  */
-export function LogExecutionTime(handler?: (executionTime: number, methodName: string) => void) {
+export function LogExecutionTime(
+  handler?: (ms: number, methodName: string) => void
+) {
+  return function <This, Args extends unknown[], Return>(
+    value: Method<This, Args, Return>,
+    context: MethodContext<This, Args, Return>
+  ): Method<This, Args, Return> {
+    const name = String(context.name);
 
-  return function (originalMethod: any, context: any) {
-
-    if (typeof originalMethod !== "function") {
-      throw new Error("🐞 [Execution Time] Can only be applied to methods.");
-    }
-
-    return function (this: any, ...args: any[]) {
+    return function (this: This, ...args: Args): Return {
       let start: number | bigint;
-      let end: number | bigint = 0; // Initialize 'end' variable with a default value
-
       try {
-        if (isBrowserEnvironment()) {
-          start = performance.now();
-        } else if (isNodeEnvironment()) {
-          start = getHighResolutionTime();
-        } else {
-          throw new Error("Unsupported environment for high-resolution timing");
-        }
-      } catch (error) {
-        console.error("Error getting high-resolution time:", error);
-        return originalMethod.apply(this, args);
+        start = getHighResolutionTime();
+      } catch {
+        // Fall back: still run original
+        return value.apply(this, args);
       }
 
       try {
-        const result = originalMethod.apply(this, args);
-
-        let end: number | bigint = 0; // Initialize 'end' variable with a default value
-        try {
-          if (isBrowserEnvironment()) {
-            end = performance.now();
-          } else if (isNodeEnvironment()) {
-            end = getHighResolutionTime();
-          }
-          const executionTime = calculateTimeInMilliseconds(start, end);
-          const methodName = context.name;
-          handler?.(executionTime, methodName);
-        } catch (error) {
-          console.error("Error calculating execution time:", error);
+        const out = value.apply(this, args);
+        if (out instanceof Promise) {
+          return (async () => {
+            try {
+              const r = await out;
+              const end = getHighResolutionTime();
+              handler?.(calculateTimeInMilliseconds(start, end), name);
+              return r;
+            } catch (e) {
+              const end = getHighResolutionTime();
+              handler?.(calculateTimeInMilliseconds(start, end), name);
+              throw e;
+            }
+          })() as unknown as Return;
+        } else {
+          const end = getHighResolutionTime();
+          handler?.(calculateTimeInMilliseconds(start, end), name);
+          return out;
         }
-
-        return result;
-      } catch (error) {
-        try {
-          if (isBrowserEnvironment()) {
-            end = performance.now();
-          } else if (isNodeEnvironment()) {
-            end = getHighResolutionTime();
-          }
-          const executionTime = calculateTimeInMilliseconds(start, end);
-          const methodName = context.name;
-          handler?.(executionTime, methodName);
-        } catch (innerError) {
-          console.error("Error calculating execution time:", innerError);
-        }
-        throw error; // rethrow the original error
+      } catch (e) {
+        const end = getHighResolutionTime();
+        handler?.(calculateTimeInMilliseconds(start, end), name);
+        throw e;
       }
     };
   };

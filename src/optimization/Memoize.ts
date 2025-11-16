@@ -1,28 +1,53 @@
+import { Method, MethodContext } from "../types";
+
 /**
- * Method decorator to cache results of expensive function calls based on arguments.
- * Useful for optimizing performance of deterministic functions by storing previous results.
+ * Memoizes method results per-instance using a configurable cache key.
+ * Works for sync and async methods; Promises are cached as-is.
  *
- * @returns MethodDecorator
+ * @param cacheKeyFactory Custom key builder from args (default JSON.stringify).
+ *
+ * @example
+ * class Fib {
+ *   @Memoize()
+ *   fib(n: number): number {
+ *     return n <= 1 ? n : this.fib(n - 1) + this.fib(n - 2);
+ *   }
+ * }
  */
-export function Memoize() {
-  return function (originalMethod: Function, context: ClassMethodDecoratorContext) {
-    const cacheSymbol = Symbol(`Memoize Cache: ${String(context.name)}`);
+export function Memoize<Args extends unknown[]>(
+  cacheKeyFactory?: (...args: Args) => string
+) {
+  // instance → (methodKey → Map<key, value/Promise>)
+  const caches = new WeakMap<object, Map<string | symbol, Map<string, unknown>>>();
 
-    return function (this: any, ...args: any[]) {
-      if (!this[cacheSymbol]) {
-        this[cacheSymbol] = new Map();
-      }
+  const keyOf = (...args: Args): string => {
+    if (cacheKeyFactory) return cacheKeyFactory(...args);
+    try { return JSON.stringify(args); } catch {
+      return args.map((a) => `${typeof a}:${String(a)}`).join("|");
+    }
+  };
 
-      const cache = this[cacheSymbol];
-      const cacheKey = JSON.stringify(args);
+  return function <This extends object, Return>(
+    value: Method<This, Args, Return>,
+    context: MethodContext<This, Args, Return>
+  ): Method<This, Args, Return> {
+    const methodKey = context.name;
 
-      if (cache.has(cacheKey)) {
-        return cache.get(cacheKey);
-      }
+    return function (this: This, ...args: Args): Return {
+      const self = this as unknown as object;
 
-      const result = originalMethod.apply(this, args);
-      cache.set(cacheKey, result);
-      return result;
+      if (!caches.get(self)) caches.set(self, new Map());
+      const perMethod = caches.get(self)!;
+
+      if (!perMethod.get(methodKey)) perMethod.set(methodKey, new Map());
+      const cache = perMethod.get(methodKey)!;
+
+      const key = keyOf(...args);
+      if (cache.has(key)) return cache.get(key) as Return;
+
+      const out = value.apply(this, args);
+      cache.set(key, out as unknown);
+      return out;
     };
   };
 }

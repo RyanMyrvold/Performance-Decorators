@@ -1,46 +1,62 @@
+// src/debugging/LogMethodError.ts
+import { Method, MethodContext } from "../types";
+
 /**
- * Decorator to log any errors that occur during the method execution. Optionally re-throws the error based on a parameter.
- * @param rethrow - A boolean to determine whether to rethrow the error after logging. Defaults to true.
- * @param errorHandler - An optional custom error handler function that takes the error and method name as parameters.
- * @returns MethodDecorator
+ * Logs any error thrown/rejected by a method. Optionally rethrows.
+ *
+ * @param rethrow Whether to rethrow after logging (default true).
+ * @param errorHandler Optional handler (err, methodName). Defaults to console.error.
+ *
+ * @code
+ * class Service {
+ *   @LogMethodError(true, (err, name) => console.error(`[${name}]`, err))
+ *   risky(): void {
+ *     throw new Error("boom");
+ *   }
+ * }
+ * @endcode
  */
-export function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, methodName: string) => void) {
-  /**
-   * Logs the given error using the provided error handler or console.
-   * @param error - The error to log.
-   * @param methodName - The name of the method in which the error occurred.
-   * @returns The error after potentially converting it to an Error instance.
-   */
-  function logError(error: any, methodName: string): Error {
-    // Convert non-Error exceptions to Error instances
-    const errorToLog = error instanceof Error ? error : new Error(`Non-Error exception: ${error}`);
+export function LogMethodError(
+  rethrow: boolean = true,
+  errorHandler?: (error: Error, methodName: string) => void
+) {
+  const emit = (raw: unknown, name: string): Error => {
+    const err = raw instanceof Error ? raw : new Error(`Non-Error exception: ${String(raw)}`);
+    try {
+      if (errorHandler) errorHandler(err, name);
+      else // eslint-disable-next-line no-console
+        console.error(`🚨 [Error] ${name}:`, err);
+    } catch {/* ignore handler failures */}
+    return err;
+  };
 
-    // Use custom error handler if provided, otherwise log to console
-    if (errorHandler) {
-      errorHandler(errorToLog, methodName);
-    } else {
-      console.error(`🚨 [Error] ${methodName} encountered an error:`, errorToLog);
-    }
+  return function <
+    This,
+    Args extends unknown[],
+    Return
+  >(
+    value: Method<This, Args, Return>,
+    context: MethodContext<This, Args, Return>
+  ): Method<This, Args, Return> {
+    const methodName = String(context.name);
 
-    return errorToLog;
-  }
-
-  return function (originalMethod: any, context: any) {
-    if (typeof originalMethod !== "function") {
-      throw new Error("🐞 [Error] Can only be applied to methods.");
-    }
-
-    return function (this: any, ...args: any[]) {
+    return function (this: This, ...args: Args): Return {
       try {
-        return originalMethod.apply(this, args);
-      } catch (error) {
-        const methodName = typeof context.name === 'symbol' ? String(context.name) : context.name;
-        const errorToRethrow = logError(error, methodName);
-
-        // Rethrow the error if the rethrow flag is true
-        if (rethrow) {
-          throw errorToRethrow;
+        const out = value.apply(this, args);
+        if (out instanceof Promise) {
+          return (out as Promise<unknown>)
+            .catch((e) => {
+              const err = emit(e, methodName);
+              if (rethrow) throw err;
+              // swallow by resolving to undefined
+              return undefined as unknown as Return;
+            }) as Return;
         }
+        return out;
+      } catch (e) {
+        const err = emit(e, methodName);
+        if (rethrow) throw err;
+        return undefined as unknown as Return;
       }
     };
   };

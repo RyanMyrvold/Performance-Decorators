@@ -1,49 +1,67 @@
+// src/debugging/LogMemoryUsage.ts
+import { Method, MethodContext } from "../types";
 import { getMemoryUsage } from "../utilities/MemoryUtilities";
 
 /**
- * Decorator to log the memory usage before and after the method execution. It uses process.memoryUsage()
- * in Node.js and performance.memory in browsers (where available).
- * @param memoryHandler - An optional custom memory handler function that takes the memory usage data and method name as parameters.
- * @returns MethodDecorator
+ * Logs memory delta (bytes) before/after a method call.
+ * Works with sync and async methods; never throws from logging path.
+ *
+ * @param memoryHandler Optional callback (deltaBytes, methodName).
+ *
+ * @code
+ * class Repo {
+ *   @LogMemoryUsage((delta, name) => console.debug(`[${name}] Δ${delta}B`))
+ *   compute(): Uint8Array {
+ *     return new Uint8Array(1024 * 256);
+ *   }
+ * }
+ * @endcode
  */
-export function LogMemoryUsage(memoryHandler?: (memoryUsed: number, methodName: string) => void) {
-  return function (originalMethod: any, context: any) {
-    if (typeof originalMethod !== "function") {
-      throw new Error("🐞 [LogMemoryUsage] Can only be applied to methods.");
-    }
+export function LogMemoryUsage(
+  memoryHandler?: (deltaBytes: number, methodName: string) => void
+) {
+  return function <
+    This,
+    Args extends unknown[],
+    Return
+  >(
+    value: Method<This, Args, Return>,
+    context: MethodContext<This, Args, Return>
+  ): Method<This, Args, Return> {
+    const methodName = String(context.name);
 
-    return function (this: any, ...args: any[]) {
-      let memoryBefore;
+    const safeGet = (): number | undefined => {
+      try { return getMemoryUsage(); } catch { return undefined; }
+    };
+
+    const finalize = (before?: number) => {
       try {
-        memoryBefore = getMemoryUsage();
-      } catch (error) {
-        console.error("🐞 [Memory Usage] Error measuring memory before execution:", error);
-        return originalMethod.apply(this, args);
-      }
+        const after = safeGet();
+        if (before === undefined || after === undefined) return;
+        const delta = after - before;
+        // Optional: keep a default console line for quick use
+        // eslint-disable-next-line no-console
+        console.log(`🧠 [Memory] ${methodName}: Δ=${delta} bytes`);
+        memoryHandler?.(delta, methodName);
+      } catch {/* ignore */}
+    };
 
-      const result = originalMethod.apply(this, args);
+    return function (this: This, ...args: Args): Return {
+      const before = safeGet();
 
-      let memoryAfter;
       try {
-        memoryAfter = getMemoryUsage();
-      } catch (error) {
-        console.error("🐞 [Memory Usage] Error measuring memory after execution:", error);
-        return result;
+        const out = value.apply(this, args);
+        if (out instanceof Promise) {
+          return (out as Promise<unknown>)
+            .then((r) => { finalize(before); return r as Return; })
+            .catch((e) => { finalize(before); throw e; }) as Return;
+        }
+        finalize(before);
+        return out;
+      } catch (err) {
+        finalize(before);
+        throw err;
       }
-
-      if (memoryBefore === undefined || memoryAfter === undefined) {
-        console.error("🐞 [Memory Usage] Memory measurement is not supported in this environment.");
-        return result;
-      }
-
-      const memoryUsed = memoryAfter - memoryBefore;
-      const methodName = typeof context.name === 'symbol' ? String(context.name) : context.name;
-
-      console.log(`🧠 [Memory Usage] ${methodName}: Memory used=${memoryUsed} bytes`);
-
-      memoryHandler?.(memoryUsed, methodName);
-
-      return result;
     };
   };
 }

@@ -1,72 +1,49 @@
+// src/optimizations/AutoRetry.ts
+import { Method, MethodContext } from "../types";
+
 /**
- * A decorator that automatically retries a function if it throws an error.
- * This decorator can be applied to methods in classes, allowing for the automatic
- * retrying of those methods in case of failure, with a specified number of retries
- * and delay between attempts.
+ * Retries an async method when it rejects/throws, up to `retries` times,
+ * waiting `delay` ms between attempts (fixed backoff).
  *
- * @param {number} retries - The maximum number of retry attempts. Default is 3.
- * @param {number} delay - The delay in milliseconds between each retry attempt. Default is 500ms.
- * @throws {Error} Throws an error if the `retries` or `delay` parameters are negative.
- * @throws {Error} Throws an error if applied to a non-method property.
+ * @param retries Non-negative number of additional attempts (default: 3)
+ * @param delay   Non-negative delay in ms between attempts (default: 500)
  *
  * @example
  * class ApiService {
  *   @AutoRetry(5, 1000)
- *   async fetchData() {
- *     // Code that might throw an error
+ *   async fetchData(): Promise<string> {
+ *     const res = await fetch("/data");
+ *     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+ *     return res.text();
  *   }
  * }
- *
- * // This will automatically retry up to 5 times with a 1-second delay between attempts.
  */
 export function AutoRetry(retries: number = 3, delay: number = 500) {
-  // Ensure retries and delay are non-negative
   if (retries < 0 || delay < 0) {
     throw new Error("🚨 [Auto Retry] Retries and delay must be non-negative.");
   }
 
-  /**
-   * The method decorator that wraps the original method with retry logic.
-   *
-   * @param {(...args: any[]) => Promise<any>} originalMethod - The original method to be decorated.
-   * @param {ClassMethodDecoratorContext} context - The context of the method in the class.
-   * @returns {Function} A new function that wraps the original method with retry logic.
-   * @throws {Error} Throws an error if applied to a non-function property.
-   */
-  return function (originalMethod: (...args: any[]) => Promise<any>, context: ClassMethodDecoratorContext) {
-    // Ensure the decorator is applied to a method
-    if (typeof originalMethod !== "function") {
-      throw new Error("🐞 [Auto Retry] Can only be applied to methods.");
-    }
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    // Return an asynchronous function that handles retry logic
-    return async function (this: any, ...args: any[]) {
-      /**
-       * A recursive function that handles the retry logic.
-       *
-       * @param {number} attempt - The current attempt count.
-       * @returns {Promise<any>} The result of the original method or throws an error after exceeding retries.
-       * @throws {Error} Throws an error after exceeding the maximum number of retries.
-       */
-      const retry = async (attempt: number): Promise<any> => {
+  return function <This, Args extends unknown[], Return>(
+    value: Method<This, Args, Return | Promise<Return>>,
+    _context: MethodContext<This, Args, Return | Promise<Return>>
+  ): Method<This, Args, Promise<Return>> {
+    return async function (this: This, ...args: Args): Promise<Return> {
+      let attempt = 0;
+      while (true) {
         try {
-          // Attempt to execute the original method
-          return await originalMethod.apply(this, args);
-        } catch (error: unknown) {
-          // If an error occurs and retries are left, wait and retry
-          if (attempt < retries) {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            return retry(attempt + 1);
-          } else {
-            // If retries are exhausted, throw an error with details
-            const errorMessage = (error instanceof Error) ? error.message : String(error);
-            throw new Error(`🚨 [Auto Retry] Failed after ${retries} retries: ${errorMessage}`);
+          // normalize both sync and async
+          return await Promise.resolve(value.apply(this, args));
+        } catch (e) {
+          if (attempt >= retries) {
+            const msg = e instanceof Error ? e.message : String(e);
+            throw new Error(`🚨 [Auto Retry] Failed after ${retries} retries: ${msg}`);
           }
+          attempt++;
+          if (delay > 0) await sleep(delay);
         }
-      };
-
-      // Start the retry logic with the first attempt
-      return retry(0);
+      }
     };
   };
 }
