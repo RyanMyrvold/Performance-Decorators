@@ -1,0 +1,25 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "PULL_REQUEST_TEMPLATE.md": true,
+        "node_modules": true,
+        "tsconfig.tsbuildinfo": true,
+        "packages/node/tsconfig.tsbuildinfo": true,
+        "packages/browser/tsconfig.tsbuildinfo": true,
+        "packages/common/tsconfig.tsbuildinfo": true,
+        "**/node_modules": true
+    },
+    "hide-files.files": [
+        "PULL_REQUEST_TEMPLATE.md",
+        "node_modules",
+        "tsconfig.tsbuildinfo",
+        "packages/node/tsconfig.tsbuildinfo",
+        "packages/browser/tsconfig.tsbuildinfo",
+        "packages/common/tsconfig.tsbuildinfo"
+    ],
+    "js/ts.implicitProjectConfig.experimentalDecorators": false
+}

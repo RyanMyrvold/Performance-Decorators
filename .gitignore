@@ -9,7 +9,6 @@ out/
 *.tsbuildinfo
 
 # IDE and Editor folders
-.vscode/
 .idea/
 *.swp
 *.swo
