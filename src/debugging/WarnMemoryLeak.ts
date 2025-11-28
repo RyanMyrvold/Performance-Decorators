@@ -48,7 +48,7 @@ export function WarnMemoryLeak(
     // A constructable wrapper that preserves `new.target` and static inheritance.
     function Wrapped(this: any, ...args: any[]) {
       // Build instance of Base, respecting `new.target` for derived classes.
-      const self = Reflect.construct(Base, args, new.target ?? Wrapped) as object;
+      const self = Reflect.construct(Base, args, new.target) as object;
 
       const start = readMem();
       if (start !== undefined) {
