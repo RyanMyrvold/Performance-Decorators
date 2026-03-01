@@ -1,5 +1,4 @@
-import { isBrowserEnvironment, isNodeEnvironment } from "./SystemUtilities";
-
+import { isBrowserEnvironment, isNodeEnvironment } from './SystemUtilities';
 
 /**
  * Gets the current high-resolution time based on the environment.
@@ -11,7 +10,7 @@ export function getHighResolutionTime(): number | bigint {
   } else if (isBrowserEnvironment()) {
     return performance.now();
   } else {
-    throw new Error("High-resolution time is not supported in this environment.");
+    throw new Error('High-resolution time is not supported in this environment.');
   }
 }
 
@@ -21,12 +20,12 @@ export function getHighResolutionTime(): number | bigint {
  * @param end The end time.
  * @returns The time difference in milliseconds.
  */
-export function calculateTimeInMilliseconds(start: number | bigint, end: number | bigint): number {
-  if (isNodeEnvironment() && typeof start === 'bigint' && typeof end === 'bigint') {
-    return Number(end - start) / 1000000;
-  } else if (isBrowserEnvironment() && typeof start === 'number' && typeof end === 'number') {
-    return end - start;
+export function calculateTimeInMilliseconds(startTime: number | bigint, endTime: number | bigint): number {
+  if (isNodeEnvironment() && typeof startTime === 'bigint' && typeof endTime === 'bigint') {
+    return Number(endTime - startTime) / 1000000;
+  } else if (isBrowserEnvironment() && typeof startTime === 'number' && typeof endTime === 'number') {
+    return endTime - startTime;
   } else {
-    throw new Error("Unsupported environment or types for time calculation.");
+    throw new Error('Unsupported environment or types for time calculation.');
   }
 }

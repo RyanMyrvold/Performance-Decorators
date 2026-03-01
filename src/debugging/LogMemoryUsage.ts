@@ -1,6 +1,5 @@
-// src/debugging/LogMemoryUsage.ts
-import { Method, MethodContext } from "../types";
-import { getMemoryUsage } from "../utilities/MemoryUtilities";
+import { Method, MethodContext } from '../types';
+import { getMemoryUsage } from '../utilities/MemoryUtilities';
 
 /**
  * Logs memory delta (bytes) before/after a method call.
@@ -17,50 +16,52 @@ import { getMemoryUsage } from "../utilities/MemoryUtilities";
  * }
  * @endcode
  */
-export function LogMemoryUsage(
-  memoryHandler?: (deltaBytes: number, methodName: string) => void
-) {
-  return function <
-    This,
-    Args extends unknown[],
-    Return
-  >(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
+export function LogMemoryUsage(memoryHandler?: (deltaBytes: number, methodName: string) => void) {
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
     const methodName = String(context.name);
 
-    const safeGet = (): number | undefined => {
-      try { return getMemoryUsage(); } catch { return undefined; }
+    const safeReadMemoryUsage = (): number | undefined => {
+      try {
+        return getMemoryUsage();
+      } catch {
+        return undefined;
+      }
     };
 
-    const finalize = (before?: number) => {
+    const recordMemoryDelta = (initialMemory?: number) => {
       try {
-        const after = safeGet();
-        if (before === undefined || after === undefined) return;
-        const delta = after - before;
-        // Optional: keep a default console line for quick use
-        // eslint-disable-next-line no-console
-        console.log(`🧠 [Memory] ${methodName}: Δ=${delta} bytes`);
-        memoryHandler?.(delta, methodName);
-      } catch {/* ignore */}
+        const finalMemory = safeReadMemoryUsage();
+        if (initialMemory === undefined || finalMemory === undefined) return;
+        const memoryDelta = finalMemory - initialMemory;
+        console.log(`${methodName}: Δ ${memoryDelta} bytes`);
+        memoryHandler?.(memoryDelta, methodName);
+      } catch {
+        // swallow
+      }
     };
 
     return function (this: This, ...args: Args): Return {
-      const before = safeGet();
+      const initialMemory = safeReadMemoryUsage();
 
       try {
-        const out = value.apply(this, args);
-        if (out instanceof Promise) {
-          return (out as Promise<unknown>)
-            .then((r) => { finalize(before); return r as Return; })
-            .catch((e) => { finalize(before); throw e; }) as Return;
+        const result = value.apply(this, args);
+        const isThenable = result && typeof (result as any).then === 'function';
+        if (isThenable) {
+          return (result as unknown as Promise<unknown>)
+            .then((resolvedValue) => {
+              recordMemoryDelta(initialMemory);
+              return resolvedValue as Return;
+            })
+            .catch((thrownError) => {
+              recordMemoryDelta(initialMemory);
+              throw thrownError;
+            }) as Return;
         }
-        finalize(before);
-        return out;
-      } catch (err) {
-        finalize(before);
-        throw err;
+        recordMemoryDelta(initialMemory);
+        return result;
+      } catch (thrownError) {
+        recordMemoryDelta(initialMemory);
+        throw thrownError;
       }
     };
   };

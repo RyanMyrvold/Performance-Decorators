@@ -1,4 +1,4 @@
-import { Method, MethodContext } from "../types";
+import { Method, MethodContext } from '../types';
 
 /**
  * Memoizes method results per-instance using a configurable cache key.
@@ -14,40 +14,36 @@ import { Method, MethodContext } from "../types";
  *   }
  * }
  */
-export function Memoize<Args extends unknown[]>(
-  cacheKeyFactory?: (...args: Args) => string
-) {
-  // instance → (methodKey → Map<key, value/Promise>)
-  const caches = new WeakMap<object, Map<string | symbol, Map<string, unknown>>>();
+export function Memoize<Args extends unknown[]>(cacheKeyFactory?: (...args: Args) => string) {
+  const instanceCaches = new WeakMap<object, Map<string | symbol, Map<string, unknown>>>();
 
-  const keyOf = (...args: Args): string => {
+  const generateCacheKey = (...args: Args): string => {
     if (cacheKeyFactory) return cacheKeyFactory(...args);
-    try { return JSON.stringify(args); } catch {
-      return args.map((a) => `${typeof a}:${String(a)}`).join("|");
+    try {
+      return JSON.stringify(args);
+    } catch {
+      return args.map((arg) => `${typeof arg}:${String(arg)}`).join('|');
     }
   };
 
-  return function <This extends object, Return>(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
+  return function <This extends object, Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
     const methodKey = context.name;
 
     return function (this: This, ...args: Args): Return {
-      const self = this as unknown as object;
+      const instance = this as unknown as object;
 
-      if (!caches.get(self)) caches.set(self, new Map());
-      const perMethod = caches.get(self)!;
+      if (!instanceCaches.get(instance)) instanceCaches.set(instance, new Map());
+      const perInstanceMethodMap = instanceCaches.get(instance)!;
 
-      if (!perMethod.get(methodKey)) perMethod.set(methodKey, new Map());
-      const cache = perMethod.get(methodKey)!;
+      if (!perInstanceMethodMap.get(methodKey)) perInstanceMethodMap.set(methodKey, new Map());
+      const methodCache = perInstanceMethodMap.get(methodKey)!;
 
-      const key = keyOf(...args);
-      if (cache.has(key)) return cache.get(key) as Return;
+      const cacheKey = generateCacheKey(...args);
+      if (methodCache.has(cacheKey)) return methodCache.get(cacheKey) as Return;
 
-      const out = value.apply(this, args);
-      cache.set(key, out as unknown);
-      return out;
+      const result = value.apply(this, args);
+      methodCache.set(cacheKey, result as unknown);
+      return result;
     };
   };
 }

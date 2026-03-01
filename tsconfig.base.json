@@ -2,13 +2,13 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
-
+    "moduleResolution": "node",
     "strict": true,
     "noEmitOnError": true,
     "useDefineForClassFields": true,
-
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   }
 }

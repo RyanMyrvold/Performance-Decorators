@@ -1,7 +1,5 @@
-// src/debugging/LogExecutionTime.ts
-import { Method, MethodContext } from "../types";
-import { isBrowserEnvironment, isNodeEnvironment } from "../utilities";
-import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities/TimeUtilities";
+import { Method, MethodContext } from '../types';
+import { calculateTimeInMilliseconds, getHighResolutionTime } from '../utilities/TimeUtilities';
 
 /**
  * Logs execution time for a method using high-resolution clocks.
@@ -22,48 +20,43 @@ import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities
  *   }
  * }
  */
-export function LogExecutionTime(
-  handler?: (ms: number, methodName: string) => void
-) {
-  return function <This, Args extends unknown[], Return>(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
-    const name = String(context.name);
+export function LogExecutionTime(handler?: (elapsedMilliseconds: number, methodName: string) => void) {
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
+    const methodName = String(context.name);
 
     return function (this: This, ...args: Args): Return {
-      let start: number | bigint;
+      let startTime: number | bigint;
       try {
-        start = getHighResolutionTime();
+        startTime = getHighResolutionTime();
       } catch {
-        // Fall back: still run original
         return value.apply(this, args);
       }
 
       try {
-        const out = value.apply(this, args);
-        if (out instanceof Promise) {
+        const result = value.apply(this, args);
+        const isThenable = result && typeof (result as any).then === 'function';
+        if (isThenable) {
           return (async () => {
             try {
-              const r = await out;
-              const end = getHighResolutionTime();
-              handler?.(calculateTimeInMilliseconds(start, end), name);
-              return r;
-            } catch (e) {
-              const end = getHighResolutionTime();
-              handler?.(calculateTimeInMilliseconds(start, end), name);
-              throw e;
+              const resolvedValue = await (result as unknown as Promise<unknown>);
+              const endTime = getHighResolutionTime();
+              handler?.(calculateTimeInMilliseconds(startTime, endTime), methodName);
+              return resolvedValue as Return;
+            } catch (thrownError) {
+              const endTime = getHighResolutionTime();
+              handler?.(calculateTimeInMilliseconds(startTime, endTime), methodName);
+              throw thrownError;
             }
           })() as unknown as Return;
         } else {
-          const end = getHighResolutionTime();
-          handler?.(calculateTimeInMilliseconds(start, end), name);
-          return out;
+          const endTime = getHighResolutionTime();
+          handler?.(calculateTimeInMilliseconds(startTime, endTime), methodName);
+          return result;
         }
-      } catch (e) {
-        const end = getHighResolutionTime();
-        handler?.(calculateTimeInMilliseconds(start, end), name);
-        throw e;
+      } catch (thrownError) {
+        const endTime = getHighResolutionTime();
+        handler?.(calculateTimeInMilliseconds(startTime, endTime), methodName);
+        throw thrownError;
       }
     };
   };

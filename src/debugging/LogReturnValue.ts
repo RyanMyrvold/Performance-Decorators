@@ -1,5 +1,4 @@
-// src/debugging/LogReturnValue.ts
-import { Method, MethodContext } from "../types";
+import { Method, MethodContext } from '../types';
 
 /**
  * Logs the method's returned value (sync or async).
@@ -13,31 +12,26 @@ import { Method, MethodContext } from "../types";
  * }
  * @endcode
  */
-export function LogReturnValue(
-  logFn: (value: unknown, methodName: string) => void = console.log
-) {
-  return function <This, Args extends unknown[], Return>(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
-    const name = String(context.name);
+export function LogReturnValue(logFn: (returnedValue: unknown, methodName: string) => void = console.log) {
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
+    const methodName = String(context.name);
 
     return function (this: This, ...args: Args): Return {
       try {
-        const out = value.apply(this, args);
-        if (out instanceof Promise) {
+        const result = value.apply(this, args);
+        const isThenable = result && typeof (result as any).then === 'function';
+        if (isThenable) {
           return (async () => {
-            const r = await out;
-            logFn(r, name);
-            return r;
+            const resolvedValue = await (result as unknown as Promise<unknown>);
+            logFn(resolvedValue, methodName);
+            return resolvedValue as Return;
           })() as unknown as Return;
         } else {
-          logFn(out, name);
-          return out;
+          logFn(result, methodName);
+          return result;
         }
-      } catch (e) {
-        // pass through; this decorator only logs returns
-        throw e;
+      } catch (thrownError) {
+        throw thrownError;
       }
     };
   };

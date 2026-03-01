@@ -1,10 +1,10 @@
-import { getMemoryUsage } from "../../src/utilities";
-import * as SystemUtilities from "../../src/utilities/SystemUtilities";
+import { getMemoryUsage } from '../../src/utilities';
+import * as SystemUtilities from '../../src/utilities/SystemUtilities';
 
-jest.mock("../../src/utilities/SystemUtilities");
+jest.mock('../../src/utilities/SystemUtilities');
 
-describe("memoryUtilities", () => {
-  describe("getMemoryUsage", () => {
+describe('memoryUtilities', () => {
+  describe('getMemoryUsage', () => {
     let originalProcess: any;
     let originalPerformance: any;
 
@@ -19,11 +19,9 @@ describe("memoryUtilities", () => {
       jest.resetAllMocks();
     });
 
-    it("should return memory usage in Node.js environment", () => {
+    it('should return memory usage in Node.js environment', () => {
       (SystemUtilities.isNodeEnvironment as jest.Mock).mockReturnValue(true);
-      (SystemUtilities.isBrowserEnvironment as jest.Mock).mockReturnValue(
-        false
-      );
+      (SystemUtilities.isBrowserEnvironment as jest.Mock).mockReturnValue(false);
 
       global.process = {
         ...originalProcess,
@@ -31,13 +29,11 @@ describe("memoryUtilities", () => {
       };
 
       const result = getMemoryUsage();
-      console.log(
-        `Test getMemoryUsage (Node.js): Expected 12345678, Received ${result}`
-      );
+      console.log(`Test getMemoryUsage (Node.js): Expected 12345678, Received ${result}`);
       expect(result).toBe(12345678);
     });
 
-    it("should return memory usage in browser environment", () => {
+    it('should return memory usage in browser environment', () => {
       (SystemUtilities.isNodeEnvironment as jest.Mock).mockReturnValue(false);
       (SystemUtilities.isBrowserEnvironment as jest.Mock).mockReturnValue(true);
 
@@ -47,26 +43,20 @@ describe("memoryUtilities", () => {
       };
 
       const result = getMemoryUsage();
-      console.log(
-        `Test getMemoryUsage (Browser): Expected 9876543, Received ${result}`
-      );
+      console.log(`Test getMemoryUsage (Browser): Expected 9876543, Received ${result}`);
       expect(result).toBe(9876543);
     });
 
-    it("should return undefined if memory usage is not supported", () => {
+    it('should return undefined if memory usage is not supported', () => {
       (SystemUtilities.isNodeEnvironment as jest.Mock).mockReturnValue(false);
-      (SystemUtilities.isBrowserEnvironment as jest.Mock).mockReturnValue(
-        false
-      );
+      (SystemUtilities.isBrowserEnvironment as jest.Mock).mockReturnValue(false);
 
       const result = getMemoryUsage();
-      console.log(
-        `Test getMemoryUsage (Unsupported environment): Expected undefined, Received ${result}`
-      );
+      console.log(`Test getMemoryUsage (Unsupported environment): Expected undefined, Received ${result}`);
       expect(result).toBeUndefined();
     });
 
-    it("should return undefined if performance.memory is not available in browser", () => {
+    it('should return undefined if performance.memory is not available in browser', () => {
       (SystemUtilities.isNodeEnvironment as jest.Mock).mockReturnValue(false);
       (SystemUtilities.isBrowserEnvironment as jest.Mock).mockReturnValue(true);
 
@@ -76,9 +66,7 @@ describe("memoryUtilities", () => {
       };
 
       const result = getMemoryUsage();
-      console.log(
-        `Test getMemoryUsage (Browser without performance.memory): Expected undefined, Received ${result}`
-      );
+      console.log(`Test getMemoryUsage (Browser without performance.memory): Expected undefined, Received ${result}`);
       expect(result).toBeUndefined();
     });
   });

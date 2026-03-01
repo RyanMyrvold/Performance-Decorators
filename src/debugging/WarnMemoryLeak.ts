@@ -1,5 +1,4 @@
-// src/optimizations/WarnMemoryLeak.ts
-import { ClassType } from "../types";
+import { ClassType } from '../types';
 
 /**
  * Periodically checks memory usage; logs a warning if growth since construction
@@ -16,19 +15,15 @@ import { ClassType } from "../types";
  * @WarnMemoryLeak(10_000, 25)
  * class Cache { /* ... *\/ }
  */
-export function WarnMemoryLeak(
-  checkIntervalMs: number = 30_000,
-  thresholdPercent: number = 20,
-  logger: (msg: string) => void = console.warn
-) {
+export function WarnMemoryLeak(checkIntervalMs: number = 30_000, thresholdPercent: number = 20, logger: (msg: string) => void = console.warn) {
   const MB = 1024 * 1024;
 
-  const readMem = (): number | undefined => {
+  const readMemoryUsage = (): number | undefined => {
     try {
-      if (typeof performance !== "undefined" && (performance as any).memory) {
+      if (typeof performance !== 'undefined' && (performance as any).memory) {
         return (performance as any).memory.usedJSHeapSize as number;
       }
-      if (typeof process !== "undefined" && typeof process.memoryUsage === "function") {
+      if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
         return process.memoryUsage().heapUsed;
       }
     } catch {
@@ -37,73 +32,64 @@ export function WarnMemoryLeak(
     return undefined;
   };
 
-  // Per-instance state kept out of the prototype graph.
-  const initialMem = new WeakMap<object, number>();
-  const timers = new WeakMap<object, number | NodeJS.Timeout>();
+  const initialMemoryPerInstance = new WeakMap<object, number>();
+  const monitoringTimersPerInstance = new WeakMap<object, number | NodeJS.Timeout>();
 
-  // Non-enumerable instance method name used for cleanup.
-  const DISPOSE = "dispose";
+  const DISPOSE = 'dispose';
 
   return function <C extends ClassType<object>>(Base: C): C {
-    // A constructable wrapper that preserves `new.target` and static inheritance.
     function Wrapped(this: any, ...args: any[]) {
-      // Build instance of Base, respecting `new.target` for derived classes.
       const self = Reflect.construct(Base, args, new.target) as object;
 
-      const start = readMem();
-      if (start !== undefined) {
-        initialMem.set(self, start);
+      const initialMemory = readMemoryUsage();
+      if (initialMemory !== undefined) {
+        initialMemoryPerInstance.set(self, initialMemory);
 
-        const t = setInterval(() => {
-          const cur = readMem();
-          const init = initialMem.get(self);
-          if (cur === undefined || init === undefined) return;
+        const monitoringTimer = setInterval(() => {
+          const currentMemory = readMemoryUsage();
+          const baselineMemory = initialMemoryPerInstance.get(self);
+          if (currentMemory === undefined || baselineMemory === undefined) return;
 
-          const deltaPct = ((cur - init) / init) * 100;
-          if (deltaPct > thresholdPercent) {
-            const name =
-              (self as { constructor?: { name?: string } })?.constructor?.name ?? "Anonymous";
-            logger(
-              `⚠️ [MemoryLeak] ${name}: usage up ${deltaPct.toFixed(2)}% (${(cur / MB).toFixed(1)} MB).`
-            );
+          const growthPercentage = ((currentMemory - baselineMemory) / baselineMemory) * 100;
+          if (growthPercentage > thresholdPercent) {
+            const className = (self as { constructor?: { name?: string } })?.constructor?.name ?? 'Anonymous';
+            logger(`${className}: usage up ${growthPercentage.toFixed(2)}% (${(currentMemory / MB).toFixed(1)} MB).`);
           }
         }, checkIntervalMs);
 
-        timers.set(self, t);
+        monitoringTimersPerInstance.set(self, monitoringTimer);
       }
 
-      // Add a non-enumerable dispose() for cleanup.
       if (!(DISPOSE in self)) {
         Object.defineProperty(self, DISPOSE, {
           configurable: true,
           enumerable: false,
           writable: true,
           value: function (this: object): void {
-            const t = timers.get(this);
-            if (t) {
-              clearInterval(t as any);
-              timers.delete(this);
+            const monitoringTimer = monitoringTimersPerInstance.get(this);
+            if (monitoringTimer) {
+              clearInterval(monitoringTimer as any);
+              monitoringTimersPerInstance.delete(this);
             }
-            initialMem.delete(this);
-          }
+            initialMemoryPerInstance.delete(this);
+          },
         });
       }
 
       return self;
     }
 
-    // Make Wrapped look/act like Base as a constructor.
-    Object.setPrototypeOf(Wrapped, Base); // static inheritance
-    Wrapped.prototype = Base.prototype;   // instance inheritance
+    Object.setPrototypeOf(Wrapped, Base);
+    Wrapped.prototype = Object.create(Base.prototype);
+    Wrapped.prototype.constructor = Wrapped;
 
     try {
-      // Keep class name readable in stacks/tools (best-effort).
-      Object.defineProperty(Wrapped, "name", {
+      Object.defineProperty(Wrapped, 'name', {
         value: Base.name,
-        configurable: true
+        configurable: true,
       });
     } catch {
-      /* non-critical */
+      // non-critical
     }
 
     return Wrapped as unknown as C;

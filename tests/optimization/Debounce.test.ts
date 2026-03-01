@@ -1,7 +1,7 @@
 // tests/optimization/Debounce.test.ts
-import { Debounce } from "../../src/optimization/Debounce";
+import { Debounce } from '../../src/optimization/Debounce';
 
-describe("Debounce Decorator", () => {
+describe('Debounce Decorator', () => {
   beforeEach(() => {
     // Modern timers are fine; avoid setImmediate/nextTick in helpers.
     jest.useFakeTimers();
@@ -25,7 +25,7 @@ describe("Debounce Decorator", () => {
     }
   };
 
-  it("should debounce method calls", async () => {
+  it('should debounce method calls', async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -46,7 +46,7 @@ describe("Debounce Decorator", () => {
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should debounce method calls with custom delay", async () => {
+  it('should debounce method calls with custom delay', async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -66,7 +66,7 @@ describe("Debounce Decorator", () => {
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should debounce method calls with default delay (300ms)", async () => {
+  it('should debounce method calls with default delay (300ms)', async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -86,7 +86,7 @@ describe("Debounce Decorator", () => {
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should debounce method calls with zero delay (coalesce same tick)", async () => {
+  it('should debounce method calls with zero delay (coalesce same tick)', async () => {
     const debouncedFunction = jest.fn();
 
     class TestClass {
@@ -105,12 +105,12 @@ describe("Debounce Decorator", () => {
     expect(debouncedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should throw an error for negative delay", () => {
+  it('should throw an error for negative delay', () => {
     expect(() => {
       class InvalidTestClass {
         @Debounce(-100)
         invalidMethod() {}
       }
-    }).toThrow("🐞 [Debounce] Delay must be non-negative.");
+    }).toThrow('Debounce: delay must be non-negative.');
   });
 });

@@ -3,7 +3,7 @@ import { isNodeEnvironment, isBrowserEnvironment, getHighResolutionTime, calcula
 
 describe('Time Utilities', () => {
   let originalProcess: NodeJS.Process | undefined;
-  let originalWindow: Window & typeof globalThis | undefined;
+  let originalWindow: (Window & typeof globalThis) | undefined;
 
   beforeAll(() => {
     originalProcess = global.process;
@@ -17,7 +17,7 @@ describe('Time Utilities', () => {
   const setNodeEnvironment = () => {
     global.process = {
       hrtime: { bigint: () => BigInt(1000) },
-      versions: { node: "mock" },
+      versions: { node: 'mock' },
     } as any;
     delete (global as any).window;
   };
@@ -43,8 +43,8 @@ describe('Time Utilities', () => {
   it('should return performance.now in browser environment', () => {
     setBrowserEnvironment();
 
-    console.log("window:", global.window);
-    console.log("isBrowserEnvironment:", isBrowserEnvironment());
+    console.log('window:', global.window);
+    console.log('isBrowserEnvironment:', isBrowserEnvironment());
 
     expect(isNodeEnvironment()).toBe(false);
     expect(isBrowserEnvironment()).toBe(true);
@@ -57,7 +57,7 @@ describe('Time Utilities', () => {
   it('should calculate time in milliseconds for browser environment', () => {
     setBrowserEnvironment();
 
-    console.log("isBrowserEnvironment:", isBrowserEnvironment());
+    console.log('isBrowserEnvironment:', isBrowserEnvironment());
 
     const start = 1234.56; // Mock start time
     const end = start + 1000; // 1 second
@@ -65,5 +65,4 @@ describe('Time Utilities', () => {
     console.log(`Test calculateTimeInMilliseconds (Browser): Expected 1000, Received ${result}`);
     expect(result).toBe(1000);
   });
-
 });

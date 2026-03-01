@@ -1,4 +1,4 @@
-import { Throttle } from "../../src/optimization/Throttle";
+import { Throttle } from '../../src/optimization/Throttle';
 
 class TestClass {
   callCount = 0;
@@ -9,7 +9,7 @@ class TestClass {
   }
 }
 
-describe("Throttle Decorator", () => {
+describe('Throttle Decorator', () => {
   let testInstance: TestClass;
 
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe("Throttle Decorator", () => {
     jest.useRealTimers();
   });
 
-  it("should throttle method calls (leading + trailing)", () => {
+  it('should throttle method calls (leading + trailing)', () => {
     // Leading call executes
     testInstance.throttledMethod();
     expect(testInstance.callCount).toBe(1);
@@ -41,13 +41,13 @@ describe("Throttle Decorator", () => {
     expect(testInstance.callCount).toBe(3);
   });
 
-  it("should throw an error for negative delay", () => {
+  it('should throw an error for negative delay', () => {
     expect(() => {
       class InvalidTestClass {
         @Throttle(-100)
         invalidMethod(): void {}
       }
-    }).toThrow("🚨 [Throttle] Delay must be non-negative.");
+    }).toThrow('Throttle: delay must be non-negative.');
   });
 
   // NOTE: With modern TS decorators, you cannot apply method decorators to fields.

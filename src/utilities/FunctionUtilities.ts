@@ -5,10 +5,8 @@
  */
 export function serializeArguments(args: any[]): string {
   try {
-    return JSON.stringify(args, (_, value) =>
-      typeof value === "function" ? `Function:${value.name}` : value
-    );
-  } catch (error) {
-    throw new Error("Failed to serialize arguments for memoization.");
+    return JSON.stringify(args, (_, value) => (typeof value === 'function' ? `Function:${value.name}` : value));
+  } catch (serializationError) {
+    throw new Error('Failed to serialize arguments for memoization.');
   }
 }

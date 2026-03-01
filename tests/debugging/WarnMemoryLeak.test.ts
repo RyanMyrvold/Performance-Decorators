@@ -1,7 +1,7 @@
 // test/optimizations/WarnMemoryLeak.spec.ts
-import { WarnMemoryLeak } from "../../src/debugging/WarnMemoryLeak";
+import { WarnMemoryLeak } from '../../src/debugging/WarnMemoryLeak';
 
-describe("WarnMemoryLeak (class decorator)", () => {
+describe('WarnMemoryLeak (class decorator)', () => {
   let setIntervalSpy: jest.SpyInstance;
   let clearIntervalSpy: jest.SpyInstance;
   let memoryUsageSpy: jest.SpyInstance;
@@ -15,13 +15,11 @@ describe("WarnMemoryLeak (class decorator)", () => {
     logger = jest.fn();
 
     // Spy timers
-    setIntervalSpy = jest.spyOn(global, "setInterval");
-    clearIntervalSpy = jest.spyOn(global, "clearInterval");
+    setIntervalSpy = jest.spyOn(global, 'setInterval');
+    clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 
     // Stub Node memory API path that the decorator reads
-    memoryUsageSpy = jest
-      .spyOn(process, "memoryUsage")
-      .mockImplementation(() => ({ heapUsed } as unknown as NodeJS.MemoryUsage));
+    memoryUsageSpy = jest.spyOn(process, 'memoryUsage').mockImplementation(() => ({ heapUsed }) as unknown as NodeJS.MemoryUsage);
   });
 
   afterEach(() => {
@@ -36,7 +34,7 @@ describe("WarnMemoryLeak (class decorator)", () => {
     heapUsed = 100 * 1024 * 1024;
   });
 
-  it("initializes and sets up a periodic check when memory API is available", () => {
+  it('initializes and sets up a periodic check when memory API is available', () => {
     @WarnMemoryLeak(1000, 10, logger)
     class TestClass {}
 
@@ -53,7 +51,7 @@ describe("WarnMemoryLeak (class decorator)", () => {
     expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("logs a warning when memory grows beyond the threshold", () => {
+  it('logs a warning when memory grows beyond the threshold', () => {
     @WarnMemoryLeak(100, 10, logger)
     class TestClass {}
 
@@ -64,14 +62,12 @@ describe("WarnMemoryLeak (class decorator)", () => {
     jest.advanceTimersByTime(100);
 
     // ⚠️ [MemoryLeak] TestClass: usage up 20.00% (120.0 MB).
-    expect(logger).toHaveBeenCalledWith(
-      expect.stringMatching(/^\u26a0\uFE0F \[MemoryLeak\] TestClass: usage up 2\d\.\d{2}% \(\d+\.\d MB\)\.$/)
-    );
+    expect(logger).toHaveBeenCalledWith(expect.stringMatching(/^TestClass: usage up 2\d\.\d{2}% \(\d+\.\d MB\)\.$/));
 
     (instance as any).dispose();
   });
 
-  it("does not log when growth stays under the threshold", () => {
+  it('does not log when growth stays under the threshold', () => {
     @WarnMemoryLeak(100, 10, logger)
     class TestClass {}
 
@@ -86,7 +82,7 @@ describe("WarnMemoryLeak (class decorator)", () => {
     (instance as any).dispose();
   });
 
-  it("dispose() clears the interval", () => {
+  it('dispose() clears the interval', () => {
     @WarnMemoryLeak(1000, 10, logger)
     class TestClass {}
 

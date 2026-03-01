@@ -1,5 +1,4 @@
-// src/optimizations/AutoRetry.ts
-import { Method, MethodContext } from "../types";
+import { Method, MethodContext } from '../types';
 
 /**
  * Retries an async method when it rejects/throws, up to `retries` times,
@@ -20,28 +19,24 @@ import { Method, MethodContext } from "../types";
  */
 export function AutoRetry(retries: number = 3, delay: number = 500) {
   if (retries < 0 || delay < 0) {
-    throw new Error("🚨 [Auto Retry] Retries and delay must be non-negative.");
+    throw new Error('AutoRetry: retries and delay must be non-negative.');
   }
 
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const delayMs = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-  return function <This, Args extends unknown[], Return>(
-    value: Method<This, Args, Return | Promise<Return>>,
-    _context: MethodContext<This, Args, Return | Promise<Return>>
-  ): Method<This, Args, Promise<Return>> {
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return | Promise<Return>>, _context: MethodContext<This, Args, Return | Promise<Return>>): Method<This, Args, Promise<Return>> {
     return async function (this: This, ...args: Args): Promise<Return> {
-      let attempt = 0;
+      let attemptNumber = 0;
       while (true) {
         try {
-          // normalize both sync and async
           return await Promise.resolve(value.apply(this, args));
-        } catch (e) {
-          if (attempt >= retries) {
-            const msg = e instanceof Error ? e.message : String(e);
-            throw new Error(`🚨 [Auto Retry] Failed after ${retries} retries: ${msg}`);
+        } catch (thrownError) {
+          if (attemptNumber >= retries) {
+            const errorMessage = thrownError instanceof Error ? thrownError.message : String(thrownError);
+            throw new Error(`AutoRetry failed after ${retries} attempts: ${errorMessage}`);
           }
-          attempt++;
-          if (delay > 0) await sleep(delay);
+          attemptNumber++;
+          if (delay > 0) await delayMs(delay);
         }
       }
     };

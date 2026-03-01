@@ -1,6 +1,5 @@
-// src/debugging/LogNetworkRequests.ts
-import { Method, MethodContext } from "../types";
-import { isBrowserEnvironment, isNodeEnvironment, getHighResolutionTime } from "../utilities";
+import { Method, MethodContext } from '../types';
+import { isBrowserEnvironment, isNodeEnvironment, getHighResolutionTime } from '../utilities';
 
 /**
  * Network log entry shape.
@@ -18,70 +17,81 @@ export type NetworkLogger = (entry: NetworkLogEntry) => void;
 
 const NOOP: NetworkLogger = () => {};
 
-// Safe, global patch bookkeeping
-const PATCH_FLAG = Symbol.for("logNetworkRequests.isPatched");
-const REFCOUNT   = Symbol.for("logNetworkRequests.refCount");
-const ORIGINAL   = Symbol.for("logNetworkRequests.originalFetch");
+const PATCH_FLAG = Symbol.for('logNetworkRequests.isPatched');
+const REFCOUNT = Symbol.for('logNetworkRequests.refCount');
+const ORIGINAL = Symbol.for('logNetworkRequests.originalFetch');
 
 /**
  * Monotonic-ish millisecond clock across environments.
  */
 const now = (): number => {
   try {
-    if (isBrowserEnvironment() && typeof performance?.now === "function") return performance.now();
+    if (isBrowserEnvironment() && typeof performance?.now === 'function') return performance.now();
     if (isNodeEnvironment()) return Number(getHighResolutionTime()); // bigint→number (for deltas/logging)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return Date.now();
 };
 
-function readRequest(input: RequestInfo | URL, init?: RequestInit): { method: string; url: string } {
-  let method = init?.method?.toUpperCase() ?? "GET";
-  let url = "";
-  if (typeof input === "string") url = input;
+function extractRequestDetails(input: RequestInfo | URL, init?: RequestInit): { method: string; url: string } {
+  let method = init?.method?.toUpperCase() ?? 'GET';
+  let url = '';
+  if (typeof input === 'string') url = input;
   else if (input instanceof URL) url = input.toString();
-  else if (typeof Request !== "undefined" && input instanceof Request) {
+  else if (typeof Request !== 'undefined' && input instanceof Request) {
     url = input.url;
     if (!init?.method && input.method) method = input.method.toUpperCase();
   } else {
-    try { url = String((input as any)?.url ?? input); } catch { url = "[unreadable]"; }
+    try {
+      url = String((input as any)?.url ?? input);
+    } catch {
+      url = '[unreadable]';
+    }
   }
   return { method, url };
 }
 
-function patchFetch(logger: NetworkLogger): () => void {
-  const g = globalThis as any;
-  if (typeof g.fetch !== "function") return () => {};
+function createFetchPatch(logger: NetworkLogger): () => void {
+  const globalContext = globalThis as any;
+  if (typeof globalContext.fetch !== 'function') return () => {};
 
-  if (typeof g[REFCOUNT] !== "number") g[REFCOUNT] = 0;
+  if (typeof globalContext[REFCOUNT] !== 'number') globalContext[REFCOUNT] = 0;
 
-  if (g[PATCH_FLAG]) {
-    g[REFCOUNT] += 1;
-    return () => { g[REFCOUNT] = Math.max(0, g[REFCOUNT] - 1); };
+  if (globalContext[PATCH_FLAG]) {
+    globalContext[REFCOUNT] += 1;
+    return () => {
+      globalContext[REFCOUNT] = Math.max(0, globalContext[REFCOUNT] - 1);
+    };
   }
 
-  const orig: typeof fetch = g.fetch.bind(g);
-  g[ORIGINAL] = orig;
+  const originalFetch: typeof fetch = globalContext.fetch.bind(globalContext);
+  globalContext[ORIGINAL] = originalFetch;
 
-  const wrapper: typeof fetch & { [PATCH_FLAG]?: boolean } = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    const { method, url } = readRequest(input, init);
-    const start = now();
-    const res = await orig(input as any, init as any);
-    const end = now();
-    try { logger({ method, url, start, end, status: res.status, statusText: res.statusText }); } catch { /* ignore */ }
-    return res;
+  const patchedFetch: typeof fetch & { [PATCH_FLAG]?: boolean } = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const { method, url } = extractRequestDetails(input, init);
+    const startTime = now();
+    const response = await originalFetch(input as any, init as any);
+    const endTime = now();
+    try {
+      logger({ method, url, start: startTime, end: endTime, status: response.status, statusText: response.statusText });
+    } catch {
+      /* ignore */
+    }
+    return response;
   }) as any;
 
-  wrapper[PATCH_FLAG] = true;
-  g[PATCH_FLAG] = true;
-  g[REFCOUNT] = 1;
-  g.fetch = wrapper;
+  patchedFetch[PATCH_FLAG] = true;
+  globalContext[PATCH_FLAG] = true;
+  globalContext[REFCOUNT] = 1;
+  globalContext.fetch = patchedFetch;
 
   return () => {
-    g[REFCOUNT] = Math.max(0, g[REFCOUNT] - 1);
-    if (g[REFCOUNT] === 0) {
-      g.fetch = g[ORIGINAL];
-      delete g[ORIGINAL];
-      delete g[PATCH_FLAG];
+    globalContext[REFCOUNT] = Math.max(0, globalContext[REFCOUNT] - 1);
+    if (globalContext[REFCOUNT] === 0) {
+      globalContext.fetch = globalContext[ORIGINAL];
+      delete globalContext[ORIGINAL];
+      delete globalContext[PATCH_FLAG];
     }
   };
 }
@@ -102,34 +112,39 @@ function patchFetch(logger: NetworkLogger): () => void {
  * }
  */
 export function LogNetworkRequests(logFn: NetworkLogger = NOOP) {
-  return function <
-    This,
-    Args extends unknown[],
-    Return
-  >(
-    value: Method<This, Args, Return>,
-    _context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
-    const logger: NetworkLogger = (e) => { try { logFn(e); } catch { /* ignore */ } };
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, _context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
+    const logger: NetworkLogger = (logEntry) => {
+      try {
+        logFn(logEntry);
+      } catch {
+        /* ignore */
+      }
+    };
 
     return function (this: This, ...args: Args): Return {
-      if (typeof (globalThis as any).fetch !== "function") {
+      if (typeof (globalThis as any).fetch !== 'function') {
         return value.apply(this, args);
       }
 
-      const unpatch = patchFetch(logger);
+      const unpatchFetch = createFetchPatch(logger);
       try {
-        const out = value.apply(this, args);
-        if (out instanceof Promise) {
-          return (out as Promise<unknown>)
-            .then((r) => { unpatch(); return r as Return; })
-            .catch((err) => { unpatch(); throw err; }) as Return;
+        const result = value.apply(this, args);
+        if (result instanceof Promise) {
+          return (result as Promise<unknown>)
+            .then((resolvedValue) => {
+              unpatchFetch();
+              return resolvedValue as Return;
+            })
+            .catch((thrownError) => {
+              unpatchFetch();
+              throw thrownError;
+            }) as Return;
         }
-        unpatch();
-        return out;
-      } catch (err) {
-        unpatch();
-        throw err;
+        unpatchFetch();
+        return result;
+      } catch (thrownError) {
+        unpatchFetch();
+        throw thrownError;
       }
     };
   };

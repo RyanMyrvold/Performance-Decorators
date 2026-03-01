@@ -1,7 +1,6 @@
 import { LogReturnValue } from '../../src/debugging/LogReturnValue';
 
 describe('LogReturnValue Decorator', () => {
-
   // Test 1: Logging the return value of a simple synchronous method
   it('should log the return value of a synchronous method', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
@@ -28,15 +27,15 @@ describe('LogReturnValue Decorator', () => {
     class TestService {
       @LogReturnValue()
       async fetchData(): Promise<string> {
-        return "data";
+        return 'data';
       }
     }
 
     const service = new TestService();
     const result = await service.fetchData();
 
-    expect(result).toBe("data");
-    expect(logSpy).toHaveBeenCalledWith("data", 'fetchData');
+    expect(result).toBe('data');
+    expect(logSpy).toHaveBeenCalledWith('data', 'fetchData');
     logSpy.mockRestore();
   });
 
@@ -84,12 +83,12 @@ describe('LogReturnValue Decorator', () => {
     class TestService {
       @LogReturnValue()
       async fetchWithError(): Promise<string> {
-        throw new Error("Network error");
+        throw new Error('Network error');
       }
     }
 
     const service = new TestService();
-    await expect(service.fetchWithError()).rejects.toThrow("Network error");
+    await expect(service.fetchWithError()).rejects.toThrow('Network error');
 
     expect(logSpy).not.toHaveBeenCalled();
     logSpy.mockRestore();
@@ -102,15 +101,15 @@ describe('LogReturnValue Decorator', () => {
     class TestService {
       @LogReturnValue()
       getObject(): object {
-        return { key: "value" };
+        return { key: 'value' };
       }
     }
 
     const service = new TestService();
     const result = service.getObject();
 
-    expect(result).toEqual({ key: "value" });
-    expect(logSpy).toHaveBeenCalledWith({ key: "value" }, 'getObject');
+    expect(result).toEqual({ key: 'value' });
+    expect(logSpy).toHaveBeenCalledWith({ key: 'value' }, 'getObject');
     logSpy.mockRestore();
   });
 
@@ -177,112 +176,110 @@ describe('LogReturnValue Decorator', () => {
     class TestService {
       @LogReturnValue()
       async getPromise(): Promise<string> {
-        return Promise.resolve("resolved");
+        return Promise.resolve('resolved');
       }
     }
 
     const service = new TestService();
     const result = await service.getPromise();
 
-    expect(result).toBe("resolved");
-    expect(logSpy).toHaveBeenCalledWith("resolved", 'getPromise');
+    expect(result).toBe('resolved');
+    expect(logSpy).toHaveBeenCalledWith('resolved', 'getPromise');
     logSpy.mockRestore();
   });
 
+  // Test 11: Logging return value when method returns a complex nested object
+  it('should log when method returns a complex nested object', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-    // Test 11: Logging return value when method returns a complex nested object
-    it('should log when method returns a complex nested object', () => {
-        const logSpy = jest.spyOn(console, 'log').mockImplementation();
+    class TestService {
+      @LogReturnValue()
+      getComplexObject(): object {
+        return { user: { id: 1, name: 'John Doe', address: { city: 'Metropolis' } } };
+      }
+    }
 
-        class TestService {
-          @LogReturnValue()
-          getComplexObject(): object {
-            return { user: { id: 1, name: "John Doe", address: { city: "Metropolis" } } };
-          }
-        }
+    const service = new TestService();
+    const result = service.getComplexObject();
 
-        const service = new TestService();
-        const result = service.getComplexObject();
+    expect(result).toEqual({ user: { id: 1, name: 'John Doe', address: { city: 'Metropolis' } } });
+    expect(logSpy).toHaveBeenCalledWith({ user: { id: 1, name: 'John Doe', address: { city: 'Metropolis' } } }, 'getComplexObject');
+    logSpy.mockRestore();
+  });
 
-        expect(result).toEqual({ user: { id: 1, name: "John Doe", address: { city: "Metropolis" } } });
-        expect(logSpy).toHaveBeenCalledWith({ user: { id: 1, name: "John Doe", address: { city: "Metropolis" } } }, 'getComplexObject');
-        logSpy.mockRestore();
-      });
+  // Test 12: Logging when method returns an array
+  it('should log when method returns an array', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      // Test 12: Logging when method returns an array
-      it('should log when method returns an array', () => {
-        const logSpy = jest.spyOn(console, 'log').mockImplementation();
+    class TestService {
+      @LogReturnValue()
+      getArray(): number[] {
+        return [1, 2, 3, 4, 5];
+      }
+    }
 
-        class TestService {
-          @LogReturnValue()
-          getArray(): number[] {
-            return [1, 2, 3, 4, 5];
-          }
-        }
+    const service = new TestService();
+    const result = service.getArray();
 
-        const service = new TestService();
-        const result = service.getArray();
+    expect(result).toEqual([1, 2, 3, 4, 5]);
+    expect(logSpy).toHaveBeenCalledWith([1, 2, 3, 4, 5], 'getArray');
+    logSpy.mockRestore();
+  });
 
-        expect(result).toEqual([1, 2, 3, 4, 5]);
-        expect(logSpy).toHaveBeenCalledWith([1, 2, 3, 4, 5], 'getArray');
-        logSpy.mockRestore();
-      });
+  // Test 13: Logging when method returns a boolean value
+  it('should log when method returns a boolean value', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      // Test 13: Logging when method returns a boolean value
-      it('should log when method returns a boolean value', () => {
-        const logSpy = jest.spyOn(console, 'log').mockImplementation();
+    class TestService {
+      @LogReturnValue()
+      isUserActive(): boolean {
+        return true;
+      }
+    }
 
-        class TestService {
-          @LogReturnValue()
-          isUserActive(): boolean {
-            return true;
-          }
-        }
+    const service = new TestService();
+    const result = service.isUserActive();
 
-        const service = new TestService();
-        const result = service.isUserActive();
+    expect(result).toBe(true);
+    expect(logSpy).toHaveBeenCalledWith(true, 'isUserActive');
+    logSpy.mockRestore();
+  });
 
-        expect(result).toBe(true);
-        expect(logSpy).toHaveBeenCalledWith(true, 'isUserActive');
-        logSpy.mockRestore();
-      });
+  // Test 14: Logging when method returns a null value
+  it('should log when method returns null', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      // Test 14: Logging when method returns a null value
-      it('should log when method returns null', () => {
-        const logSpy = jest.spyOn(console, 'log').mockImplementation();
+    class TestService {
+      @LogReturnValue()
+      getNullValue(): null {
+        return null;
+      }
+    }
 
-        class TestService {
-          @LogReturnValue()
-          getNullValue(): null {
-            return null;
-          }
-        }
+    const service = new TestService();
+    const result = service.getNullValue();
 
-        const service = new TestService();
-        const result = service.getNullValue();
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith(null, 'getNullValue');
+    logSpy.mockRestore();
+  });
 
-        expect(result).toBeNull();
-        expect(logSpy).toHaveBeenCalledWith(null, 'getNullValue');
-        logSpy.mockRestore();
-      });
+  // Test 15: Ensuring no logging if the logging function is overridden with an empty function
+  it('should not log if the logging function is overridden with an empty function', () => {
+    const logSpy = jest.fn();
 
-      // Test 15: Ensuring no logging if the logging function is overridden with an empty function
-      it('should not log if the logging function is overridden with an empty function', () => {
-        const logSpy = jest.fn();
+    class TestService {
+      @LogReturnValue(logSpy)
+      getValue(): string {
+        return 'value';
+      }
+    }
 
-        class TestService {
-          @LogReturnValue(logSpy)
-          getValue(): string {
-            return "value";
-          }
-        }
+    const service = new TestService();
+    const result = service.getValue();
 
-        const service = new TestService();
-        const result = service.getValue();
-
-        expect(result).toBe("value");
-        expect(logSpy).toHaveBeenCalledWith("value", 'getValue');
-        expect(logSpy).toHaveBeenCalledTimes(1);
-      });
-
+    expect(result).toBe('value');
+    expect(logSpy).toHaveBeenCalledWith('value', 'getValue');
+    expect(logSpy).toHaveBeenCalledTimes(1);
+  });
 });

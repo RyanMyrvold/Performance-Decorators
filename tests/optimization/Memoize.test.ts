@@ -1,6 +1,6 @@
-import { Memoize } from "../../src/optimization/Memoize";
+import { Memoize } from '../../src/optimization/Memoize';
 
-describe("Memoize Decorator", () => {
+describe('Memoize Decorator', () => {
   class TestClassA {
     callCount = 0;
 
@@ -17,7 +17,7 @@ describe("Memoize Decorator", () => {
     instance = new TestClassA();
   });
 
-  test("should cache the result for repeated arguments", () => {
+  test('should cache the result for repeated arguments', () => {
     const firstResult = instance.computeExpensiveResult(3, 4);
     const secondResult = instance.computeExpensiveResult(3, 4);
 
@@ -26,7 +26,7 @@ describe("Memoize Decorator", () => {
     expect(instance.callCount).toBe(1);
   });
 
-  test("should compute the result again for different arguments", () => {
+  test('should compute the result again for different arguments', () => {
     const resultA = instance.computeExpensiveResult(3, 4);
     const resultB = instance.computeExpensiveResult(5, 6);
 
@@ -35,7 +35,7 @@ describe("Memoize Decorator", () => {
     expect(instance.callCount).toBe(2);
   });
 
-  test("should not share cache across instances", () => {
+  test('should not share cache across instances', () => {
     const instanceA = new TestClassA();
     const instanceB = new TestClassA();
 
@@ -48,7 +48,7 @@ describe("Memoize Decorator", () => {
     expect(instanceB.callCount).toBe(1);
   });
 
-  it("should memoize method calls", () => {
+  it('should memoize method calls', () => {
     const memoizedFunction = jest.fn();
 
     class TestClassB {
@@ -66,7 +66,7 @@ describe("Memoize Decorator", () => {
     expect(memoizedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should memoize method calls with arguments", () => {
+  it('should memoize method calls with arguments', () => {
     const memoizedFunction = jest.fn();
 
     class TestClassC {
@@ -85,7 +85,7 @@ describe("Memoize Decorator", () => {
     expect(memoizedFunction).toHaveBeenCalledTimes(1);
   });
 
-  it("should memoize different argument pairs separately", () => {
+  it('should memoize different argument pairs separately', () => {
     const memoizedFunction = jest.fn();
 
     class TestClassD {
@@ -104,7 +104,7 @@ describe("Memoize Decorator", () => {
     expect(memoizedFunction).toHaveBeenCalledTimes(3);
   });
 
-  it("should reuse cache after interleaving calls", () => {
+  it('should reuse cache after interleaving calls', () => {
     const memoizedFunction = jest.fn();
 
     class TestClassE {
@@ -123,7 +123,7 @@ describe("Memoize Decorator", () => {
     expect(memoizedFunction).toHaveBeenCalledTimes(2);
   });
 
-  it("should cache multiple distinct keys and hit on repeats", () => {
+  it('should cache multiple distinct keys and hit on repeats', () => {
     const memoizedFunction = jest.fn();
 
     class TestClassF {

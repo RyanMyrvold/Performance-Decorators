@@ -1,4 +1,4 @@
-import { serializeArguments } from "../../src/utilities/FunctionUtilities";
+import { serializeArguments } from '../../src/utilities/FunctionUtilities';
 
 describe('serializeArguments', () => {
   it('should serialize arguments correctly', () => {
@@ -16,8 +16,6 @@ describe('serializeArguments', () => {
   it('should throw an error for circular references', () => {
     const obj: any = {};
     obj.self = obj;
-    expect(() => serializeArguments([obj])).toThrow(
-      "Failed to serialize arguments for memoization."
-    );
+    expect(() => serializeArguments([obj])).toThrow('Failed to serialize arguments for memoization.');
   });
 });

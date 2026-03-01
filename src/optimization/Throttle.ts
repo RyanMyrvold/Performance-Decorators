@@ -1,4 +1,4 @@
-import { Method, MethodContext } from "../types";
+import { Method, MethodContext } from '../types';
 
 /**
  * Throttles a method: run at most once per `delay` ms.
@@ -17,53 +17,48 @@ import { Method, MethodContext } from "../types";
  * }
  */
 export function Throttle(delay: number = 300) {
-  if (delay < 0) throw new Error("🚨 [Throttle] Delay must be non-negative.");
+  if (delay < 0) throw new Error('Throttle: delay must be non-negative.');
 
-  type S = { lastRun: number; timer: ReturnType<typeof setTimeout> | null; lastArgs: unknown[] | null };
+  type ThrottleState = { lastRun: number; timer: ReturnType<typeof setTimeout> | null; lastArgs: unknown[] | null };
 
-  // instance → (methodKey → state)
-  const states = new WeakMap<object, Map<string | symbol, S>>();
+  const instanceStates = new WeakMap<object, Map<string | symbol, ThrottleState>>();
 
-  return function <This, Args extends unknown[]>(
-    value: Method<This, Args, void>,
-    context: MethodContext<This, Args, void>
-  ): Method<This, Args, void> {
-    const key = context.name;
+  return function <This, Args extends unknown[]>(value: Method<This, Args, void>, context: MethodContext<This, Args, void>): Method<This, Args, void> {
+    const methodKey = context.name;
 
     return function (this: This, ...args: Args): void {
-      const self = this as unknown as object;
-      if (!states.get(self)) states.set(self, new Map());
-      const map = states.get(self)!;
+      const instance = this as unknown as object;
+      if (!instanceStates.get(instance)) instanceStates.set(instance, new Map());
+      const perInstanceMap = instanceStates.get(instance)!;
 
-      let s = map.get(key);
-      if (!s) {
-        s = { lastRun: 0, timer: null, lastArgs: null };
-        map.set(key, s);
+      let state = perInstanceMap.get(methodKey);
+      if (!state) {
+        state = { lastRun: 0, timer: null, lastArgs: null };
+        perInstanceMap.set(methodKey, state);
       }
 
-      const now = Date.now();
-      const elapsed = now - s.lastRun;
+      const currentTime = Date.now();
+      const timeSinceLastRun = currentTime - state.lastRun;
 
-      if (elapsed >= delay) {
-        if (s.timer) {
-          clearTimeout(s.timer);
-          s.timer = null;
+      if (timeSinceLastRun >= delay) {
+        if (state.timer) {
+          clearTimeout(state.timer);
+          state.timer = null;
         }
-        s.lastRun = now;
-        value.apply(this, args); // leading
+        state.lastRun = currentTime;
+        value.apply(this, args);
         return;
       }
 
-      // Coalesce trailing execution with latest args only
-      s.lastArgs = args;
-      if (s.timer) clearTimeout(s.timer);
-      s.timer = setTimeout(() => {
-        s!.lastRun = Date.now();
-        const toCall = s!.lastArgs ?? [];
-        s!.lastArgs = null;
-        value.apply(this, toCall as Args); // trailing
-        s!.timer = null;
-      }, delay - elapsed);
+      state.lastArgs = args;
+      if (state.timer) clearTimeout(state.timer);
+      state.timer = setTimeout(() => {
+        state!.lastRun = Date.now();
+        const argsToExecute = state!.lastArgs ?? [];
+        state!.lastArgs = null;
+        value.apply(this, argsToExecute as Args);
+        state!.timer = null;
+      }, delay - timeSinceLastRun);
     };
   };
 }

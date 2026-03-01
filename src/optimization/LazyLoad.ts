@@ -1,5 +1,4 @@
-// src/optimizations/LazyLoad.ts
-import { GetterContext, Method, MethodContext } from "../types";
+import { GetterContext, Method, MethodContext } from '../types';
 
 /**
  * Lazily computes a value on first access and caches it for subsequent accesses.
@@ -27,40 +26,32 @@ import { GetterContext, Method, MethodContext } from "../types";
  * }
  */
 export function LazyLoad() {
-  return function <
-    This,
-    Value
-  >(
-    value: ((this: This) => Value),
-    context: GetterContext<This, Value> | MethodContext<This, [], Value>
-  ): (this: This) => Value {
-    const name = String(context.name);
-    const SLOT = Symbol(`[[lazy:${name}]]`);
+  return function <This, Value>(value: (this: This) => Value, context: GetterContext<This, Value> | MethodContext<This, [], Value>): (this: This) => Value {
+    const methodName = String(context.name);
+    const cachedValueSlot = Symbol(`[[lazy:${methodName}]]`);
 
-    // Getter form
-    if (context.kind === "getter") {
-      const getter = value as (this: This) => Value;
+    if (context.kind === 'getter') {
+      const getterFn = value as (this: This) => Value;
       return function (this: This): Value {
-        const self = this as unknown as Record<string | symbol, unknown>;
-        if (!(SLOT in self)) {
-          self[SLOT] = getter.call(this);
+        const instance = this as unknown as Record<string | symbol, unknown>;
+        if (!(cachedValueSlot in instance)) {
+          instance[cachedValueSlot] = getterFn.call(this);
         }
-        return self[SLOT] as Value;
+        return instance[cachedValueSlot] as Value;
       };
     }
 
-    // Zero-arg method form
-    if (context.kind === "method") {
-      const method = value as Method<This, [], Value>;
+    if (context.kind === 'method') {
+      const methodFn = value as Method<This, [], Value>;
       return function (this: This): Value {
-        const self = this as unknown as Record<string | symbol, unknown>;
-        if (!(SLOT in self)) {
-          self[SLOT] = method.call(this);
+        const instance = this as unknown as Record<string | symbol, unknown>;
+        if (!(cachedValueSlot in instance)) {
+          instance[cachedValueSlot] = methodFn.call(this);
         }
-        return self[SLOT] as Value;
+        return instance[cachedValueSlot] as Value;
       };
     }
 
-    throw new Error(`LazyLoad can only decorate a getter or a zero-argument method: ${name}`);
+    throw new Error(`LazyLoad can only decorate a getter or a zero-argument method: ${methodName}`);
   };
 }

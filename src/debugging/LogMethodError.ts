@@ -1,5 +1,4 @@
-// src/debugging/LogMethodError.ts
-import { Method, MethodContext } from "../types";
+import { Method, MethodContext } from '../types';
 
 /**
  * Logs any error thrown/rejected by a method. Optionally rethrows.
@@ -16,46 +15,35 @@ import { Method, MethodContext } from "../types";
  * }
  * @endcode
  */
-export function LogMethodError(
-  rethrow: boolean = true,
-  errorHandler?: (error: Error, methodName: string) => void
-) {
-  const emit = (raw: unknown, name: string): Error => {
-    const err = raw instanceof Error ? raw : new Error(`Non-Error exception: ${String(raw)}`);
+export function LogMethodError(rethrow: boolean = true, errorHandler?: (error: Error, methodName: string) => void) {
+  const logAndNormalizeError = (thrownValue: unknown, methodName: string): Error => {
+    const normalizedError = thrownValue instanceof Error ? thrownValue : new Error(`Non-Error exception: ${String(thrownValue)}`);
     try {
-      if (errorHandler) errorHandler(err, name);
-      else // eslint-disable-next-line no-console
-        console.error(`🚨 [Error] ${name}:`, err);
-    } catch {/* ignore handler failures */}
-    return err;
+      if (errorHandler) errorHandler(normalizedError, methodName);
+      else console.error(`${methodName}:`, normalizedError);
+    } catch {
+      // ignore handler failures
+    }
+    return normalizedError;
   };
 
-  return function <
-    This,
-    Args extends unknown[],
-    Return
-  >(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
     const methodName = String(context.name);
 
     return function (this: This, ...args: Args): Return {
       try {
-        const out = value.apply(this, args);
-        if (out instanceof Promise) {
-          return (out as Promise<unknown>)
-            .catch((e) => {
-              const err = emit(e, methodName);
-              if (rethrow) throw err;
-              // swallow by resolving to undefined
-              return undefined as unknown as Return;
-            }) as Return;
+        const result = value.apply(this, args);
+        if (result instanceof Promise) {
+          return (result as Promise<unknown>).catch((thrownError) => {
+            const normalizedError = logAndNormalizeError(thrownError, methodName);
+            if (rethrow) throw normalizedError;
+            return undefined as unknown as Return;
+          }) as Return;
         }
-        return out;
-      } catch (e) {
-        const err = emit(e, methodName);
-        if (rethrow) throw err;
+        return result;
+      } catch (thrownError) {
+        const normalizedError = logAndNormalizeError(thrownError, methodName);
+        if (rethrow) throw normalizedError;
         return undefined as unknown as Return;
       }
     };

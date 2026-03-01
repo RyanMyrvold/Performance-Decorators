@@ -1,4 +1,4 @@
-import { Method, MethodContext } from "../types";
+import { Method, MethodContext } from '../types';
 
 /**
  * Debounces a method so that only the latest call within `delay` ms runs.
@@ -24,69 +24,63 @@ import { Method, MethodContext } from "../types";
  * }
  */
 export function Debounce(delay: number = 300) {
-  if (delay < 0) throw new Error("🐞 [Debounce] Delay must be non-negative.");
+  if (delay < 0) throw new Error('Debounce: delay must be non-negative.');
 
-  type Bucket = {
+  type DebounceBucket = {
     timer: ReturnType<typeof setTimeout> | null;
     lastArgs: unknown[] | null;
-    deferred:
-      | { resolve: (v: unknown) => void; reject: (e: unknown) => void }
-      | null;
+    deferred: { resolve: (value: unknown) => void; reject: (error: unknown) => void } | null;
   };
 
-  // instance → (methodKey → bucket)
-  const buckets = new WeakMap<object, Map<string | symbol, Bucket>>();
+  const instanceBuckets = new WeakMap<object, Map<string | symbol, DebounceBucket>>();
 
-  return function <This, Args extends unknown[], Return>(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
-    const key = context.name;
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
+    const methodKey = context.name;
 
     return function (this: This, ...args: Args): Return {
-      const self = this as unknown as object;
-      if (!buckets.get(self)) buckets.set(self, new Map());
-      const map = buckets.get(self)!;
+      const instance = this as unknown as object;
+      if (!instanceBuckets.get(instance)) instanceBuckets.set(instance, new Map());
+      const perInstanceMap = instanceBuckets.get(instance)!;
 
-      let b = map.get(key);
-      if (!b) {
-        b = { timer: null, lastArgs: null, deferred: null };
-        map.set(key, b);
+      let bucket = perInstanceMap.get(methodKey);
+      if (!bucket) {
+        bucket = { timer: null, lastArgs: null, deferred: null };
+        perInstanceMap.set(methodKey, bucket);
       }
 
-      if (b.timer) {
-        clearTimeout(b.timer);
-        b.timer = null;
+      if (bucket.timer) {
+        clearTimeout(bucket.timer);
+        bucket.timer = null;
       }
 
-      b.lastArgs = args;
+      bucket.lastArgs = args;
 
-      let resolve!: (v: unknown) => void;
-      let reject!: (e: unknown) => void;
-      const p = new Promise((res, rej) => ((resolve = res), (reject = rej)));
-      b.deferred = { resolve, reject };
+      let resolveDeferred!: (value: unknown) => void;
+      let rejectDeferred!: (error: unknown) => void;
+      const deferredPromise = new Promise((res, rej) => ((resolveDeferred = res), (rejectDeferred = rej)));
+      bucket.deferred = { resolve: resolveDeferred, reject: rejectDeferred };
 
-      b.timer = setTimeout(() => {
-        b!.timer = null;
-        const finalArgs = (b!.lastArgs ?? []) as Args;
+      bucket.timer = setTimeout(() => {
+        bucket!.timer = null;
+        const finalArgs = (bucket!.lastArgs ?? []) as Args;
         try {
-          const out = value.apply(this, finalArgs);
-          if (out instanceof Promise) {
-            (out as Promise<unknown>).then(b!.deferred!.resolve, b!.deferred!.reject);
+          const result = value.apply(this, finalArgs);
+          const isThenable = result && typeof (result as any).then === 'function';
+          if (isThenable) {
+            (result as unknown as Promise<unknown>).then(bucket!.deferred!.resolve, bucket!.deferred!.reject);
           } else {
-            b!.deferred!.resolve(out as unknown);
+            bucket!.deferred!.resolve(result as unknown);
           }
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error(`🚨 [Debounce] ${String(key)} threw:`, e);
-          b!.deferred!.reject(e);
+        } catch (error) {
+          console.error(`${String(methodKey)} threw:`, error);
+          bucket!.deferred!.reject(error);
         } finally {
-          b!.lastArgs = null;
-          b!.deferred = null;
+          bucket!.lastArgs = null;
+          bucket!.deferred = null;
         }
       }, delay);
 
-      return p as unknown as Return;
+      return deferredPromise as unknown as Return;
     };
   };
 }

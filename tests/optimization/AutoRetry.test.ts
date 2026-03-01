@@ -1,8 +1,8 @@
 // tests/optimization/AutoRetry.test.ts
-import { AutoRetry } from "../../src/optimization/AutoRetry";
+import { AutoRetry } from '../../src/optimization/AutoRetry';
 
-describe("AutoRetry Decorator", () => {
-  it("retries the method until it succeeds", async () => {
+describe('AutoRetry Decorator', () => {
+  it('retries the method until it succeeds', async () => {
     class TestClass {
       private attempts = 0;
 
@@ -11,25 +11,25 @@ describe("AutoRetry Decorator", () => {
       async unreliableMethod() {
         this.attempts++;
         if (this.attempts < 3) {
-          throw new Error("Temporary failure");
+          throw new Error('Temporary failure');
         }
-        return "Success";
+        return 'Success';
       }
     }
 
     const instance = new TestClass();
-    await expect(instance.unreliableMethod()).resolves.toBe("Success");
+    await expect(instance.unreliableMethod()).resolves.toBe('Success');
   });
 
-  it("fails after the maximum number of retries", async () => {
+  it('fails after the maximum number of retries', async () => {
     class TestClass {
       @AutoRetry(2, 0) // retries=2 => total attempts=3
       async permanentlyFailingMethod() {
-        throw new Error("Permanent failure");
+        throw new Error('Permanent failure');
       }
     }
 
     const instance = new TestClass();
-    await expect(instance.permanentlyFailingMethod()).rejects.toThrow(/Failed after 2 retries: Permanent failure/);
+    await expect(instance.permanentlyFailingMethod()).rejects.toThrow(/AutoRetry failed after 2 attempts: Permanent failure/);
   });
 });

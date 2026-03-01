@@ -1,6 +1,5 @@
-// src/optimizations/WarnPerformanceThreshold.ts
-import { Method, MethodContext } from "../types";
-import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities/TimeUtilities";
+import { Method, MethodContext } from '../types';
+import { calculateTimeInMilliseconds, getHighResolutionTime } from '../utilities/TimeUtilities';
 
 /**
  * Warns if a method's execution time exceeds `threshold` milliseconds.
@@ -16,43 +15,38 @@ import { calculateTimeInMilliseconds, getHighResolutionTime } from "../utilities
  * }
  * @endcode
  */
-export function WarnPerformanceThreshold(
-  thresholdMs: number = 100,
-  performanceHandler?: (ms: number, methodName: string) => void
-) {
-  return function <This, Args extends unknown[], Return>(
-    value: Method<This, Args, Return>,
-    context: MethodContext<This, Args, Return>
-  ): Method<This, Args, Return> {
-    const name = String(context.name);
+export function WarnPerformanceThreshold(thresholdMs: number = 100, performanceHandler?: (ms: number, methodName: string) => void) {
+  return function <This, Args extends unknown[], Return>(value: Method<This, Args, Return>, context: MethodContext<This, Args, Return>): Method<This, Args, Return> {
+    const methodName = String(context.name);
 
-    const warn = (ms: number) => {
-      if (ms > thresholdMs) {
-        console.warn(`⚠️ [Performance] ${name} exceeded ${thresholdMs} ms (${ms.toFixed(2)} ms).`);
-        performanceHandler?.(ms, name);
+    const warnIfThresholdExceeded = (elapsedMs: number) => {
+      if (elapsedMs > thresholdMs) {
+        console.warn(`${methodName} exceeded ${thresholdMs} ms (${elapsedMs.toFixed(2)} ms).`);
+        performanceHandler?.(elapsedMs, methodName);
       }
     };
 
     return function (this: This, ...args: Args): Return {
-      const start = getHighResolutionTime();
+      const startTime = getHighResolutionTime();
       try {
-        const out = value.apply(this, args);
-        if (out instanceof Promise) {
+        const result = value.apply(this, args);
+        const isThenable = result && typeof (result as any).then === 'function';
+        if (isThenable) {
           return (async () => {
-            const r = await out;
-            const end = getHighResolutionTime();
-            warn(calculateTimeInMilliseconds(start, end));
-            return r;
+            const resolvedValue = await (result as unknown as Promise<unknown>);
+            const endTime = getHighResolutionTime();
+            warnIfThresholdExceeded(calculateTimeInMilliseconds(startTime, endTime));
+            return resolvedValue as Return;
           })() as unknown as Return;
         } else {
-          const end = getHighResolutionTime();
-          warn(calculateTimeInMilliseconds(start, end));
-          return out;
+          const endTime = getHighResolutionTime();
+          warnIfThresholdExceeded(calculateTimeInMilliseconds(startTime, endTime));
+          return result;
         }
-      } catch (e) {
-        const end = getHighResolutionTime();
-        warn(calculateTimeInMilliseconds(start, end));
-        throw e;
+      } catch (thrownError) {
+        const endTime = getHighResolutionTime();
+        warnIfThresholdExceeded(calculateTimeInMilliseconds(startTime, endTime));
+        throw thrownError;
       }
     };
   };
